@@ -1,8 +1,7 @@
-target/
-.idea/
-.settings/
-.idea/
-.project
+provenance-api/target/
+provenance-api/.idea/
+provenance-api/.settings/
+provenance-api/.project
 *.jar
 *.iml
 *.cache
