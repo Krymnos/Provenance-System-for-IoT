@@ -5,10 +5,11 @@ import io.provenance.config.ProvenanceConfig;
 public class Datapoint {
 	private String id;
 	private InputDatapoint[] inputDatapoints;
-	private static Long counter;
+	private static long counter;
 	private Context context;
 	
 	public Datapoint() {
+		counter = (long) (Math.random()*1000);
 		id = generateID();
 	}
 	
@@ -49,18 +50,18 @@ public class Datapoint {
 	}
 	
 	private String generateID() {
-		StringBuilder id = new StringBuilder();
-		id.append(format(Long.toHexString(System.currentTimeMillis() / 1000), 8));
-		id.append(format(Long.toHexString(counter++), 6));
-		id.append(format(ProvenanceConfig.getName(), 6));
+		StringBuilder id = new StringBuilder()
+				.append(format(Long.toHexString(System.currentTimeMillis() / 1000), 8))
+				.append(format(Long.toHexString(counter++), 6))
+				.append(format(ProvenanceConfig.getName(), 6));
 		return id.toString();
 	}
 	
 	private String format(String str, int len) {
 		if(str.length() >= len)
-			return str.substring(0,str.length());
+			return str.substring(0, len);
 		else
-			return String.format("%"+ len +"s", str).replaceAll(" ", "0");
+			return String.format("%" + len + "s", str).replaceAll(" ", "0");
 	}
 	
 }

@@ -24,6 +24,16 @@ public class ContextBuilder {
 		return this;
 	}
 
+	public ContextBuilder setSendTimestamp(Date date) {
+		context.setSendTime(date);
+		return this;
+	}
+	
+	public ContextBuilder setReceiveTimestamp(Date date) {
+		context.setReceiveTime(date);
+		return this;
+	}
+	
 	public ContextBuilder setLineNo(Long lineNo) {
 		context.setLineNo(lineNo);;
 		return this;

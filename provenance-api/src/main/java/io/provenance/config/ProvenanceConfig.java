@@ -5,6 +5,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Properties;
+
 import io.provenance.exception.ConfigParseException;
 import io.provenance.sink.CassandraSink;
 import io.provenance.sink.Sink;
@@ -24,14 +25,6 @@ public class ProvenanceConfig {
 			prop.load(input);
 			if(prop.containsKey("name") && prop.containsKey("sink") && prop.containsKey("metrics")) {
 				name = prop.getProperty("name");
-				if(prop.getProperty("sink").toLowerCase().equals("cassandra")) {
-					if(prop.containsKey("cassandra.ip")) {
-						int port = prop.containsKey("cassandra.port") ? Integer.parseInt(prop.getProperty("cassandra.port")) : 9042;
-						sink = new CassandraSink(new CassandraConfig(prop.getProperty("cassandra.ip"), port));
-					} else
-						throw new ConfigParseException("Cassandera IP not specified.");
-				} else
-					throw new ConfigParseException("No Sink found.");
 				String[] metricNames = prop.getProperty("metrics").split(",");
 				metrics = new String[metricNames.length];
 				for(int i =0; i< metricNames.length; i++) {
@@ -40,6 +33,24 @@ public class ProvenanceConfig {
 						throw new ConfigParseException("Invalid metrics specified in the config file. (Currently supported metrics 'loc','line','class','app','ctime','stime','rtime')");
 					metrics[i] = metricObj.name();
 				}
+				if(prop.getProperty("sink").toLowerCase().equals("cassandra")) {
+					int port = prop.containsKey("cassandra.port") ? Integer.parseInt(prop.getProperty("cassandra.port")) : 9042;
+					CassandraConfig cassandraConfig;
+					if(prop.containsKey("cassandra.ip")) 
+						cassandraConfig = new CassandraConfig(prop.getProperty("cassandra.ip"), port);
+					else
+						cassandraConfig = new CassandraConfig("127.0.0.1", port);
+					if(prop.containsKey("cassandra.keyspace.name"))
+						cassandraConfig.setKeyspaceName(prop.getProperty("cassandra.keyspace.name"));
+					if(prop.containsKey("cassandra.table.name"))
+						cassandraConfig.setTableName(prop.getProperty("cassandra.table.name"));
+					if(prop.containsKey("cassandra.replication.strategy"))
+						cassandraConfig.setReplicationStrategy(prop.getProperty("cassandra.replication.strategy"));
+					if(prop.containsKey("cassandra.replication.factor"))
+						cassandraConfig.setReplicationFactor(Integer.parseInt(prop.getProperty("cassandra.replication.factor")));
+					sink = new CassandraSink(cassandraConfig);
+				} else
+					throw new ConfigParseException("No Sink found.");
 			} else 
 				throw new ConfigParseException("Problem parsing config file. ('name', 'sink' and 'metrics' are the required config parameters.)");
 		} catch (NullPointerException npe) {

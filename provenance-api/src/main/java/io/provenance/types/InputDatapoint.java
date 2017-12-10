@@ -5,10 +5,6 @@ public class InputDatapoint {
 	private String id;
 	private String contrIbution;
 	
-	public InputDatapoint(String id) {
-		this.id = id;
-	}
-	
 	public InputDatapoint(String id, String contrIbution) {
 		this.id = id;
 		this.contrIbution = contrIbution;
