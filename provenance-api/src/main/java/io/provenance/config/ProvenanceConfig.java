@@ -54,11 +54,11 @@ public class ProvenanceConfig {
 			} else 
 				throw new ConfigParseException("Problem parsing config file. ('name', 'sink' and 'metrics' are the required config parameters.)");
 		} catch (NullPointerException npe) {
-			throw new ConfigParseException("Config file not found. (Make sure 'provenance.properties' points to the config file location.)");
+			throw new ConfigParseException("Config file not found. (Make sure 'provenance_properties' points to the config file location.)");
 		} catch (FileNotFoundException fnfe) {
-			throw new ConfigParseException("Config file not found. (Make sure 'provenance.properties' points to the config file location.)");
+			throw new ConfigParseException("Config file not found. (Make sure 'provenance_properties' points to the config file location.)");
 		} catch (IOException ioe) {
-			throw new ConfigParseException("Problem loading config file. (Make sure 'provenance.properties' points to the config file location and config has proper read permissions.)");
+			throw new ConfigParseException("Problem loading config file. (Make sure 'provenance_properties' points to the config file location and config has proper read permissions.)");
 		}
 	}
 	
