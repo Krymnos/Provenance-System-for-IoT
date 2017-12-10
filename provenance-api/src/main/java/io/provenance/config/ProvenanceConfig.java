@@ -21,7 +21,7 @@ public class ProvenanceConfig {
 		Properties prop = new Properties();
 		InputStream input = null;
 		try {
-			input = new FileInputStream(System.getenv("provenance.properties"));
+			input = new FileInputStream(System.getenv("provenance_properties"));
 			prop.load(input);
 			if(prop.containsKey("name") && prop.containsKey("sink") && prop.containsKey("metrics")) {
 				name = prop.getProperty("name");
