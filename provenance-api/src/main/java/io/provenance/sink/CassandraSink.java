@@ -21,18 +21,7 @@ public class CassandraSink implements Sink{
 	private Cluster cluster;
     private Session session;
 
-	public String verify(String q) {
-		ResultSet result = session.execute(
-			      "SELECT * FROM provenance.provenanceTable1414;");
-		for(Row r : result.all()) {
-			System.out.println(r.toString());
-		}
-		
-		return "";
-	}
-    
-    
-	public CassandraSink(CassandraConfig config) {
+    public CassandraSink(CassandraConfig config) {
 		this.config = config;
 		connect();
 		defineSchema();
@@ -53,7 +42,6 @@ public class CassandraSink implements Sink{
 			      .append("};");
 			         
 	    String keyspaceQuery = keyspaceQueryBuilder.toString();
-	    System.out.println(keyspaceQuery);
 	    session.execute(keyspaceQuery);
 	    StringBuilder tableQueryBuilder = new StringBuilder("CREATE TABLE IF NOT EXISTS ").append(config.getKeyspaceName()).append(".")
 	    		.append(config.getTableName()).append("(")
@@ -73,7 +61,6 @@ public class CassandraSink implements Sink{
 	    			.append(",").append(getSinkFieldName("LONG")).append(" ").append(getSinkType("LONG"));
 	    tableQueryBuilder = tableQueryBuilder.append(");");
 	    String tableQuery = tableQueryBuilder.toString();
-	    System.out.println(tableQuery);
 	    session.execute(tableQuery);
 	}
 	
@@ -139,7 +126,6 @@ public class CassandraSink implements Sink{
 		    		.append(",").append(datapoints[i].getContext().getLoc().getLongitude());
 		    insertQueryBuilder = insertQueryBuilder.append(");");
 		    String query = insertQueryBuilder.toString();
-		    System.out.println(query);
 		    session.execute(query);
 		}
 		return ids;
