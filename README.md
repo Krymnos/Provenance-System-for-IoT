@@ -14,7 +14,7 @@ ProvenanceContext pc = ProvenanceContext.getOrCreate();
 ```
 
 ### Datapoint:
-Datapoint is a type to represent provenance data point. There is always a unique provenance Datapoint for each data value and each provenance Datapoint has a unique auto-generated identifier, some input data points along with their contribution type to this data point and also some context information.
+Datapoint is a type to represent provenance data point. There is always a unique provenance Datapoint for each data value and each provenance Datapoint and it has a unique auto-generated identifier, list of input data points along with their contribution type to this data point and also some context information.
 
 One can create the Datapoint as follows:
 
@@ -23,7 +23,7 @@ Datapoint dp = new Datapoint();
 ```
 
 ### InputDatapoint:
-Each data item in an IOT system is either capture from sensors or it is created by applying transformations to other data values. So, this information should also be part of the provenance Datapoint and that is carried inside InputDatapoint. Each InputDatapoint has an id of some Datapoint as well the contribution/transformation that when applied to that data value possibly along with some other data values caused new data value.
+Each data item in an IOT system is either captured from sensors or it is created by applying transformations to other data values. So, this information should also be part of the provenance Datapoint and that is carried inside InputDatapoint. Each InputDatapoint has an id of some Datapoint as well the contribution/transformation type that when applied to that data value possibly along with some other data values caused this new data value.
 One can get a list of InputDatapoint just by passing list of Datapoint ids to the getInputDatapoints method of the ProvenanceContext. If you do not specify the contribution type it will mark it simple (No aggregation).
 
 ```java
@@ -31,7 +31,7 @@ String[] inputDPIDs = ...
 InputDatapoint[] inputDPs = pc.getInputDatapoints(inputDPIDs);
 ```
 
-One can specify the contribution/transformation as second argument:
+One can specify the contribution/transformation as a second argument:
 
 ```java
 String[] inputDPIDs = ...
