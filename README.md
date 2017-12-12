@@ -72,4 +72,4 @@ pc.save(dp);
 ```
 ### Building
 
-Execute `./mvn clean install` to build, and create jars.
+Execute `mvn clean install` to build, and create jars.
