@@ -70,6 +70,6 @@ To save the provenance data point, one should call the save method of the Proven
 ```java
 pc.save(dp);
 ```
-### Building
+## Building
 
 Execute `mvn clean install` to build, and create jars.
