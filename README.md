@@ -14,7 +14,7 @@ ProvenanceContext pc = ProvenanceContext.getOrCreate();
 ```
 
 ### Datapoint:
-Datapoint is a type to represent provenance data point. There is always a unique provenance Datapoint for each data value and each provenance Datapoint and it has a unique auto-generated identifier, list of input data points along with their contribution type to this data point and also some context information.
+Datapoint is a type to represent provenance data point. There is always a unique provenance Datapoint for each data value and each provenance Datapoint has a unique auto-generated identifier, list of input data points along with their contribution type to this data point and also some context information.
 
 One can create the Datapoint as follows:
 
