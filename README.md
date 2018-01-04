@@ -3,7 +3,7 @@
 ## Required Reading:
 In order to understand the API, one must first be familiar with the [provenance project](https://github.com/Krymnos/IDP/issues/21) and [DataModel](https://github.com/Krymnos/IDP/issues/11) more specifically.
 
-![Provenance Data Model](https://image.ibb.co/k7JmsG/Data_Model_for_IDP_V2_1.png)
+![Provenance Data Model](https://image.ibb.co/mk7CXG/Data_Model_for_IDP_V2_1.png)
 
 ### ProvenanceContext:
 Each node in the pipeline has one unique `ProvenanceContext` and it is responsible for actual storage of the provenance data.
