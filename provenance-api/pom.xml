@@ -61,5 +61,23 @@
 				</executions>
 			</plugin>
 		</plugins>
+		<extensions>
+			<extension>
+				<groupId>io.packagecloud.maven.wagon</groupId>
+				<artifactId>maven-packagecloud-wagon</artifactId>
+				<version>0.0.6</version>
+			</extension>
+		</extensions>
 	</build>
+
+	<distributionManagement>
+		<repository>
+			<id>packagecloud-gerritja</id>
+			<url>packagecloud+https://packagecloud.io/gerritja/IDP</url>
+		</repository>
+		<snapshotRepository>
+			<id>packagecloud-gerritja</id>
+			<url>packagecloud+https://packagecloud.io/gerritja/IDP</url>
+		</snapshotRepository>
+	</distributionManagement>
 </project>
