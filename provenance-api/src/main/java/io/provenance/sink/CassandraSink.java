@@ -78,6 +78,8 @@ public class CassandraSink implements Sink{
 			case "RECEIVE_TIME" : return "rtime";
 			case "LAT" 			: return "latitude";
 			case "LONG" 		: return "longitude";
+			case "METER" 		: return "meterId";
+			case "METRIC" 		: return "metricId";
 			default 			: return null;
 		}
 	}
@@ -95,6 +97,8 @@ public class CassandraSink implements Sink{
 			case "RECEIVE_TIME" : return "timestamp";
 			case "LAT" 			: return "double";
 			case "LONG" 		: return "double";
+			case "METER" 		: return "text";
+			case "METRIC" 		: return "text";
 			default 			: return null;
 		}
 	}
@@ -102,6 +106,7 @@ public class CassandraSink implements Sink{
 	public String[] ingest(Datapoint...datapoints) {
 		String[] ids = new String[datapoints.length];
 		for(int i=0; i<datapoints.length; i++) {
+			ids[i] = datapoints[i].getId();
 			StringBuilder insertQueryBuilder = new StringBuilder("INSERT INTO ")
 					.append(config.getKeyspaceName()).append(".").append(config.getTableName()).append("(").append(getSinkFieldName("ID"))
 				      .append(",");
@@ -113,7 +118,7 @@ public class CassandraSink implements Sink{
 		    	insertQueryBuilder = insertQueryBuilder.append(getSinkFieldName(metrics[j]));
 		    	if(j != metrics.length -1)
 		    		insertQueryBuilder = insertQueryBuilder.append(",");
-		    	if(metrics[i].equals("LOCATION"))
+		    	if(metrics[j].equals("LOCATION"))
 		    		locationExist = true;
 		    }
 			if(locationExist && datapoints[i].getContext().getLoc() != null && datapoints[i].getContext().getLoc().isCoordinatesSet())
@@ -149,6 +154,8 @@ public class CassandraSink implements Sink{
 				case "CREATE_TIME" 	: insertQueryValuesBuilder = dp.getContext().getTimestamp() != null ? insertQueryValuesBuilder.append(dp.getContext().getTimestamp().getTime()) : insertQueryValuesBuilder.append("null"); break;
 				case "SEND_TIME" 	: insertQueryValuesBuilder = dp.getContext().getSendTime() != null ? insertQueryValuesBuilder.append(dp.getContext().getSendTime().getTime()) : insertQueryValuesBuilder.append("null"); break;
 				case "RECEIVE_TIME" : insertQueryValuesBuilder = dp.getContext().getReceiveTime() != null ? insertQueryValuesBuilder.append(dp.getContext().getReceiveTime().getTime()) : insertQueryValuesBuilder.append("null"); break;
+				case "METER" 		: insertQueryValuesBuilder = dp.getContext().getMeterId() != null ? insertQueryValuesBuilder.append("'" + dp.getContext().getMeterId()+ "'") : insertQueryValuesBuilder.append("null"); break;
+				case "METRIC" 	 	: insertQueryValuesBuilder = dp.getContext().getMetricId() != null ? insertQueryValuesBuilder.append("'" + dp.getContext().getMetricId()+ "'") : insertQueryValuesBuilder.append("null"); break;
 				default 			: insertQueryValuesBuilder = insertQueryValuesBuilder.append(String.valueOf(null));
 	    	}
 	    	if(i != metrics.length-1)

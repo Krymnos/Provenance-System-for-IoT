@@ -45,7 +45,17 @@ public class ContextBuilder {
 	}
 
 	public ContextBuilder setClassName(String className) {
-		context.setClassName(className);;
+		context.setClassName(className);
+		return this;
+	}
+	
+	public ContextBuilder setMetricId(String metricId) {
+		context.setMetricId(metricId);
+		return this;
+	}
+	
+	public ContextBuilder setMeterId(String meterId) {
+		context.setMeterId(meterId);
 		return this;
 	}
 }

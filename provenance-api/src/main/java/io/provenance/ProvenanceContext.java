@@ -51,7 +51,7 @@ public class ProvenanceContext {
 	 *				ProvenanceContext pc = ProvenanceContext.getOrCreate();
 	 *				pc.getContextParams();
 	 * Example Response:
-	 * 					["LOCATION", "LINE", "CLASS", "APPLICATION", "CREATE_TIME", "SEND_TIME", "RECEIVE_TIME"]
+	 * 					["METER", "METRIC", "LOCATION", "LINE", "CLASS", "APPLICATION", "CREATE_TIME", "SEND_TIME", "RECEIVE_TIME"]
 	 *
 	 * @return      An array of all required context attributes.
 	 * @see         Context
@@ -90,5 +90,9 @@ public class ProvenanceContext {
 		for(int i=0; i<inputDatapointsIDs.length; i++)
 			inputDatapoints[i] = new InputDatapoint(inputDatapointsIDs[i], contrIbution);
 		return inputDatapoints;
+	}
+	
+	public void close() {
+		ProvenanceConfig.getSink().close();
 	}
 }

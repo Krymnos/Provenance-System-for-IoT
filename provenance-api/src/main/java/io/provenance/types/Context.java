@@ -10,6 +10,8 @@ public class Context {
 	private Date timestamp;
 	private Date sendTime;
 	private Date receiveTime;
+	private String meterId;
+	private String metricId;
 
 	public static ContextBuilder builder() {
 		return new ContextBuilder();
@@ -62,5 +64,19 @@ public class Context {
 	}
 	public void setReceiveTime(Date receiveTime) {
 		this.receiveTime = receiveTime;
+	}
+	
+	public String getMeterId() {
+		return meterId;
+	}
+	public void setMeterId(String meterId) {
+		this.meterId = meterId;
+	}
+
+	public String getMetricId() {
+		return metricId;
+	}
+	public void setMetricId(String metricId) {
+		this.metricId = metricId;
 	}
 }

@@ -30,7 +30,7 @@ public class ProvenanceConfig {
 				for(int i =0; i< metricNames.length; i++) {
 					Metric metricObj = Metric.fromValue(metricNames[i].trim());
 					if(metricObj == null)
-						throw new ConfigParseException("Invalid metrics specified in the config file. (Currently supported metrics 'loc','line','class','app','ctime','stime','rtime')");
+						throw new ConfigParseException("Invalid metrics specified in the config file. (Currently supported metrics 'mid','loc','line','class','app','ctime','stime','rtime')");
 					metrics[i] = metricObj.name();
 				}
 				if(prop.getProperty("sink").toLowerCase().equals("cassandra")) {
