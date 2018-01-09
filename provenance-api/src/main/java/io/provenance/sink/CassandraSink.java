@@ -5,6 +5,7 @@ import java.util.Map;
 
 import com.datastax.driver.core.Cluster;
 import com.datastax.driver.core.Cluster.Builder;
+import com.datastax.driver.core.PreparedStatement;
 import com.datastax.driver.core.ResultSet;
 import com.datastax.driver.core.Row;
 import com.datastax.driver.core.Session;
@@ -25,6 +26,7 @@ public class CassandraSink implements Sink{
 		this.config = config;
 		connect();
 		defineSchema();
+		registerNode();
 	}
 	
 	public void connect() {
@@ -34,6 +36,13 @@ public class CassandraSink implements Sink{
         session = cluster.connect();
 	}
 
+	public void query(String query) {
+		ResultSet rs = session.execute(query);
+		for(Row r : rs) {
+			System.out.println(r.toString());
+		}
+	}
+	
 	public void defineSchema() {
 		StringBuilder keyspaceQueryBuilder = new StringBuilder("CREATE KEYSPACE IF NOT EXISTS ")
 			      .append(config.getKeyspaceName()).append(" WITH replication = {")
@@ -64,6 +73,15 @@ public class CassandraSink implements Sink{
 	    session.execute(tableQuery);
 	}
 	
+	public void registerNode() {
+		StringBuilder tableQueryBuilder = new StringBuilder("CREATE TABLE IF NOT EXISTS ").append(config.getKeyspaceName())
+				.append(".node(id text PRIMARY KEY, name text, successor text);");
+		String tableQuery = tableQueryBuilder.toString();
+	    session.execute(tableQuery);
+	    PreparedStatement preparedQuery = session.prepare("INSERT INTO ".concat(config.getKeyspaceName())
+	    		.concat(".node(id, name, successor) VALUES (?, ?, ?)"));
+	    session.execute(preparedQuery.bind(ProvenanceConfig.getNodeId(), ProvenanceConfig.getName(), ProvenanceConfig.getSuccessor()));
+	}
 
 	public String getSinkFieldName(String fieldName) {
 		switch(fieldName) {

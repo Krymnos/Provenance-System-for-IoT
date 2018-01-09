@@ -14,6 +14,8 @@ import io.provenance.types.Metric;
 public class ProvenanceConfig {
 
 	private static String name;
+	private static String nodeId;
+	private static String successor;
 	private static Sink sink;
 	private static String[] metrics;
 	
@@ -23,8 +25,10 @@ public class ProvenanceConfig {
 		try {
 			input = new FileInputStream(System.getenv("provenance_properties"));
 			prop.load(input);
-			if(prop.containsKey("name") && prop.containsKey("sink") && prop.containsKey("metrics")) {
-				name = prop.getProperty("name");
+			if(prop.containsKey("id") && prop.containsKey("successor") && prop.containsKey("sink") && prop.containsKey("metrics")) {
+				nodeId = prop.getProperty("id");
+				successor = prop.getProperty("successor");
+				name = prop.containsKey("name") ? prop.getProperty("name") : nodeId;
 				String[] metricNames = prop.getProperty("metrics").split(",");
 				metrics = new String[metricNames.length];
 				for(int i =0; i< metricNames.length; i++) {
@@ -52,7 +56,7 @@ public class ProvenanceConfig {
 				} else
 					throw new ConfigParseException("No Sink found.");
 			} else 
-				throw new ConfigParseException("Problem parsing config file. ('name', 'sink' and 'metrics' are the required config parameters.)");
+				throw new ConfigParseException("Problem parsing config file. ('id' ,'successor' , 'sink' and 'metrics' are the required config parameters.)");
 		} catch (NullPointerException npe) {
 			throw new ConfigParseException("Config file not found. (Make sure 'provenance_properties' points to the config file location.)");
 		} catch (FileNotFoundException fnfe) {
@@ -62,14 +66,22 @@ public class ProvenanceConfig {
 		}
 	}
 	
-	public static String getName() {
-		return name;
+	public static String getNodeId() {
+		return nodeId;
 	}
 	
 	public static Sink getSink() {
 		return sink;
 	}
 	
+	public static String getName() {
+		return name;
+	}
+
+	public static String getSuccessor() {
+		return successor;
+	}
+
 	public static String[] getMetrics() {
 		return metrics;
 	}

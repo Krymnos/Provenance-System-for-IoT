@@ -53,7 +53,7 @@ public class Datapoint {
 		StringBuilder id = new StringBuilder()
 				.append(format(Long.toHexString(System.currentTimeMillis() / 1000), 8))
 				.append(format(Long.toHexString(counter++), 6))
-				.append(format(ProvenanceConfig.getName(), 6));
+				.append(format(ProvenanceConfig.getNodeId(), 6));
 		return id.toString();
 	}
 	
