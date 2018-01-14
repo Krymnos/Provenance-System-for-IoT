@@ -1,9 +1,10 @@
 package io.provenance.types;
 
 public class Location {
+	
 	private String lable;
-	private double latitude;
-	private double longitude;
+	private Double latitude;
+	private Double longitude;
 	private boolean coordinatesSet;
 
 	public Location(String lable) {
@@ -20,6 +21,7 @@ public class Location {
 	public void setLotLong(double latitude, double longitude) {
 		this.latitude = latitude;
 		this.longitude = longitude;
+		this.coordinatesSet = true;
 	}
 	
 	public String getLable() {
@@ -34,18 +36,8 @@ public class Location {
 		return latitude;
 	}
 
-	public void setLatitude(double latitude) {
-		this.latitude = latitude;
-		this.coordinatesSet = true;
-	}
-
 	public double getLongitude() {
 		return longitude;
-	}
-
-	public void setLongitude(double longitude) {
-		this.longitude = longitude;
-		this.coordinatesSet = true;
 	}
 
 	public boolean isCoordinatesSet() {

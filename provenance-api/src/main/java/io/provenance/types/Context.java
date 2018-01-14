@@ -3,6 +3,7 @@ package io.provenance.types;
 import java.util.Date;
 
 public class Context {
+	
 	private Location loc;
 	private Long lineNo;
 	private String appName;
@@ -52,11 +53,19 @@ public class Context {
 		this.timestamp = timestamp;
 	}
 	
+	public void setTimestamp(Long timestamp) {
+		this.timestamp = new Date(timestamp);
+	}
+	
 	public Date getSendTime() {
 		return sendTime;
 	}
 	public void setSendTime(Date sendTime) {
 		this.sendTime = sendTime;
+	}
+	
+	public void setSendTime(Long sendTime) {
+		this.sendTime = new Date(sendTime);
 	}
 
 	public Date getReceiveTime() {
@@ -64,6 +73,10 @@ public class Context {
 	}
 	public void setReceiveTime(Date receiveTime) {
 		this.receiveTime = receiveTime;
+	}
+	
+	public void setReceiveTime(Long receiveTime) {
+		this.receiveTime = new Date(receiveTime);
 	}
 	
 	public String getMeterId() {

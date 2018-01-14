@@ -23,14 +23,29 @@ public class ContextBuilder {
 		context.setTimestamp(date);
 		return this;
 	}
+	
+	public ContextBuilder setTimestamp(Long timestamp) {
+		context.setTimestamp(timestamp);
+		return this;
+	}
 
 	public ContextBuilder setSendTimestamp(Date date) {
 		context.setSendTime(date);
 		return this;
 	}
 	
+	public ContextBuilder setSendTimestamp(Long timestamp) {
+		context.setSendTime(timestamp);
+		return this;
+	}
+	
 	public ContextBuilder setReceiveTimestamp(Date date) {
 		context.setReceiveTime(date);
+		return this;
+	}
+	
+	public ContextBuilder setReceiveTimestamp(Long timestamp) {
+		context.setReceiveTime(timestamp);
 		return this;
 	}
 	
