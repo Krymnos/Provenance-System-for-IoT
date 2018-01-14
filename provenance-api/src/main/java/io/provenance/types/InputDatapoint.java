@@ -5,9 +5,9 @@ public class InputDatapoint {
 	private String id;
 	private String contribution;
 	
-	public InputDatapoint(String id, String contrIbution) {
+	public InputDatapoint(String id, String contribution) {
 		this.id = id;
-		this.contribution = contrIbution;
+		this.contribution = contribution;
 	}
 	
 	public String getId() {
