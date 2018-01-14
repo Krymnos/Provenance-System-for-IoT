@@ -3,6 +3,7 @@ package io.provenance.types;
 import io.provenance.config.ProvenanceConfig;
 
 public class Datapoint {
+	
 	private String id;
 	private InputDatapoint[] inputDatapoints;
 	private static long counter;
@@ -63,5 +64,4 @@ public class Datapoint {
 		else
 			return String.format("%" + len + "s", str).replaceAll(" ", "0");
 	}
-	
 }

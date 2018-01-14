@@ -159,7 +159,7 @@ public class CassandraSink implements Sink{
 		if(dp.getInputDatapoints() != null) {
 			Map<String, String> inputDPs = new HashMap<String,String>();
 			for(InputDatapoint idp : dp.getInputDatapoints())
-				inputDPs.put(idp.getId(), idp.getContrIbution());
+				inputDPs.put(idp.getId(), idp.getContribution());
 			insertQueryValuesBuilder = insertQueryValuesBuilder.append(new Gson().toJson(inputDPs).replaceAll("\"", "'")).append(",");
 		}
 		String[] metrics = ProvenanceConfig.getMetrics();

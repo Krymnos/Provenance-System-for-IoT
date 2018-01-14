@@ -1,6 +1,7 @@
 package io.provenance.types;
 
 public enum Metric {
+
 	METER("meterid"),
 	METRIC("metricid"),
 	LOCATION("loc"),
