@@ -2,7 +2,6 @@ package io.provenance.sink;
 
 import java.util.HashMap;
 import java.util.Map;
-
 import com.datastax.driver.core.Cluster;
 import com.datastax.driver.core.Cluster.Builder;
 import com.datastax.driver.core.PreparedStatement;
@@ -10,7 +9,6 @@ import com.datastax.driver.core.ResultSet;
 import com.datastax.driver.core.Row;
 import com.datastax.driver.core.Session;
 import com.google.gson.Gson;
-
 import io.provenance.config.CassandraConfig;
 import io.provenance.config.ProvenanceConfig;
 import io.provenance.types.Datapoint;
@@ -26,6 +24,8 @@ public class CassandraSink implements Sink{
 		this.config = config;
 		connect();
 		defineSchema();
+		defineHeartbeatSchema();
+		defineNodeRateSchema();
 		registerNode();
 	}
 	
@@ -82,7 +82,35 @@ public class CassandraSink implements Sink{
 	    		.concat(".node(id, name, successor) VALUES (?, ?, ?)"));
 	    session.execute(preparedQuery.bind(ProvenanceConfig.getNodeId(), ProvenanceConfig.getName(), ProvenanceConfig.getSuccessor()));
 	}
+	
+	public void defineHeartbeatSchema() {
+		StringBuilder tableQueryBuilder = new StringBuilder("CREATE TABLE IF NOT EXISTS ").append(config.getKeyspaceName())
+				.append(".heartbeat(uid timeuuid PRIMARY KEY, id text, time timestamp);");
+		String tableQuery = tableQueryBuilder.toString();
+	    session.execute(tableQuery);
+	}
 
+	public void ingestHeartbeat() {
+		StringBuilder tableQueryBuilder = new StringBuilder("INSERT INTO ").append(config.getKeyspaceName())
+	    		.append(".heartbeat(uid, id, time) VALUES ")
+	    		.append(String.format("(now(), '%s', %d)", ProvenanceConfig.getNodeId(), System.currentTimeMillis()));
+	    session.execute(tableQueryBuilder.toString());
+	}
+	
+	public void defineNodeRateSchema() {
+		StringBuilder tableQueryBuilder = new StringBuilder("CREATE TABLE IF NOT EXISTS ").append(config.getKeyspaceName())
+				.append(".noderate(uid timeuuid PRIMARY KEY, id text, srate double, rrate double, time timestamp);");
+		String tableQuery = tableQueryBuilder.toString();
+	    session.execute(tableQuery);
+	}
+	
+	public void ingestNodeRate(double sendRate, double receiveRate) {
+		StringBuilder tableQueryBuilder = new StringBuilder("INSERT INTO ").append(config.getKeyspaceName())
+	    		.append(".noderate(uid, id, srate, rrate, time) VALUES ")
+	    		.append(String.format("(now(), '%s', %f, %f, %d)", ProvenanceConfig.getNodeId(), sendRate, receiveRate, System.currentTimeMillis()));
+		session.execute(tableQueryBuilder.toString());
+	}
+	
 	public String getSinkFieldName(String fieldName) {
 		switch(fieldName) {
 			case "ID"			: return "id";
@@ -121,10 +149,8 @@ public class CassandraSink implements Sink{
 		}
 	}
 
-	public String[] ingest(Datapoint...datapoints) {
-		String[] ids = new String[datapoints.length];
+	public void ingest(Datapoint...datapoints) {
 		for(int i=0; i<datapoints.length; i++) {
-			ids[i] = datapoints[i].getId();
 			StringBuilder insertQueryBuilder = new StringBuilder("INSERT INTO ")
 					.append(config.getKeyspaceName()).append(".").append(config.getTableName()).append("(").append(getSinkFieldName("ID"))
 				      .append(",");
@@ -151,7 +177,6 @@ public class CassandraSink implements Sink{
 		    String query = insertQueryBuilder.toString();
 		    session.execute(query);
 		}
-		return ids;
 	}
 	
 	private String getValues(Datapoint dp) {
@@ -185,9 +210,5 @@ public class CassandraSink implements Sink{
 	public void close() {
 		session.close();
 		cluster.close();
-	}
-
-	public Session getSession() {
-		return session;
 	}
 }
