@@ -6,6 +6,8 @@
 
 * branch develop: [![Build Status](https://travis-ci.org/Krymnos/Provenance-System-for-IoT.svg?branch=develop)](https://travis-ci.org/Krymnos/Provenance-System-for-IoT) 
 
+* branch deployment: [![Build Status](https://travis-ci.org/Krymnos/Provenance-System-for-IoT.svg?branch=deployment)](https://travis-ci.org/Krymnos/Provenance-System-for-IoT) 
+
 
 
 ## Required Reading:
