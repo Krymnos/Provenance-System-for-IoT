@@ -1,10 +1,8 @@
 language: java
 before_script: cd provenance-api
 deploy:
-  provider: packagecloud
-  repository: IDP
-  username: gerritja
-  token:
-    secure: YfdRcaGy7EKxPzAf6b6rdzBcq48Gas9/vsd8Itj3nC7olw0qvhKy9HwejAAYEd0agHGBfE0K/8gsKxXQogtXoiQ3ucnFKcLUoujzPC2P0H6ze08JaDILsz+WiXcZnPv75yHr+ltB3/MxcSLnHS/UPVcjv7MXXdyZs7GVWs0xhfhPR6WebBxblmbg+4an9zXCcc9y4JRGJ1AIO36/j1IXDwwxmhUfT9EYnn8sQftxo19venNlMxTN2yJqJLw5dG7AVo82SUHinqHh8IGAS1e2Ye2drMUPv7WB3vQi83HcGicdWAGF9YB2nBALO1hb4XIp+1IJ2odRFd6gpazXqvowYrmyEVlk3ploDlUEfTW8eU9PrRqLzX63q4bBASOtxj6dQS4qxxW1G7NOTmhp7T73XlNWucj69Kz3F0XLlpAsz9cnrcAxaYvDqYR9KPxD1gs/CaoF91HEWvepSfML22a7LONZ/swkvUPnZOi1edSfo/Q/B32Klge15POfxUp720nN6c69WEPN5/ZD1nLk44d3YBjiU0l8tbibLr4KROgO3MRExqXxSh6YCN1nJTbBYAjx8dnbajhqGTEpHHBwHma5wPTm5bwQ+SVqxiDSiAMcAmbvZ8uUCS+8Y5ENoIycbDyEvfSy/BawIjNAeFaPruvCIM0wQ2z8oP5CAFRLMKonLWg=
+  provider: script
+  script: "cp .travis.settings.xml $HOME/.m2/settings.xml && mvn deploy"
+  skip_cleanup: true
   on:
     branch: deployment
