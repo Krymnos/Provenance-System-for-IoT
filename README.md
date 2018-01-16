@@ -1,5 +1,13 @@
 # Provenance-System-for-IoT
 
+## Build State
+
+* branch master: [![Build Status](https://travis-ci.org/Krymnos/Provenance-System-for-IoT.svg?branch=master)](https://travis-ci.org/Krymnos/Provenance-System-for-IoT)
+
+* branch develop: [![Build Status](https://travis-ci.org/Krymnos/Provenance-System-for-IoT.svg?branch=develop)](https://travis-ci.org/Krymnos/Provenance-System-for-IoT) 
+
+
+
 ## Required Reading:
 In order to understand the API, one must first be familiar with the [provenance project](https://github.com/Krymnos/IDP/issues/21) and [DataModel](https://github.com/Krymnos/IDP/issues/11) more specifically.
 
