@@ -2,7 +2,6 @@ package io.provenance.sink;
 
 import java.util.HashMap;
 import java.util.Map;
-
 import com.datastax.driver.core.BatchStatement;
 import com.datastax.driver.core.Cluster;
 import com.datastax.driver.core.Cluster.Builder;
@@ -27,8 +26,6 @@ public class CassandraSink implements Sink{
 		this.config = config;
 		connect();
 		defineSchema();
-		defineHeartbeatSchema();
-		defineNodeRateSchema();
 		registerNode();
 	}
 	
@@ -40,14 +37,16 @@ public class CassandraSink implements Sink{
         session = cluster.connect();
 	}
 
-	public void query(String query) {
-		ResultSet rs = session.execute(query);
-		for(Row r : rs) {
-			System.out.println(r.toString());
-		}
-	}
-	
+    @Override
 	public void defineSchema() {
+		defineKeyspace();
+		defineDatapointSchema();
+		defineNodeSchema();
+		defineHeartbeatSchema();
+		defineNodeRateSchema();
+	}
+    
+    public void defineKeyspace() {
 		StringBuilder keyspaceQueryBuilder = new StringBuilder("CREATE KEYSPACE IF NOT EXISTS ")
 			      .append(config.getKeyspaceName()).append(" WITH replication = {")
 			      .append("'class':'").append(config.getReplicationStrategy())
@@ -56,7 +55,10 @@ public class CassandraSink implements Sink{
 			         
 	    String keyspaceQuery = keyspaceQueryBuilder.toString();
 	    session.execute(keyspaceQuery);
-	    StringBuilder tableQueryBuilder = new StringBuilder("CREATE TABLE IF NOT EXISTS ").append(config.getKeyspaceName()).append(".")
+	}
+    
+    public void defineDatapointSchema() {
+		StringBuilder tableQueryBuilder = new StringBuilder("CREATE TABLE IF NOT EXISTS ").append(config.getKeyspaceName()).append(".")
 	    		.append(config.getTableName()).append("(")
 	    		.append(getSinkFieldName("ID")).append(" ").append(getSinkType("ID")).append(" ").append("PRIMARY KEY").append(",")
 	    		.append(getSinkFieldName("IID")).append(" ").append(getSinkType("IID")).append(",");
@@ -76,83 +78,35 @@ public class CassandraSink implements Sink{
 	    String tableQuery = tableQueryBuilder.toString();
 	    session.execute(tableQuery);
 	}
-	
-	public void registerNode() {
+    
+    public void defineNodeSchema() {
 		StringBuilder tableQueryBuilder = new StringBuilder("CREATE TABLE IF NOT EXISTS ").append(config.getKeyspaceName())
 				.append(".node(id text PRIMARY KEY, name text, successor text);");
 		String tableQuery = tableQueryBuilder.toString();
-	    session.execute(tableQuery);
-	    PreparedStatement preparedQuery = session.prepare("INSERT INTO ".concat(config.getKeyspaceName())
-	    		.concat(".node(id, name, successor) VALUES (?, ?, ?)"));
-	    session.execute(preparedQuery.bind(ProvenanceConfig.getNodeId(), ProvenanceConfig.getName(), ProvenanceConfig.getSuccessor()));
+		session.execute(tableQuery);
 	}
-	
-	public void defineHeartbeatSchema() {
+    
+    public void defineHeartbeatSchema() {
 		StringBuilder tableQueryBuilder = new StringBuilder("CREATE TABLE IF NOT EXISTS ").append(config.getKeyspaceName())
 				.append(".heartbeat(uid timeuuid PRIMARY KEY, id text, time timestamp);");
 		String tableQuery = tableQueryBuilder.toString();
 		session.execute(tableQuery);
 	}
-
-	public void ingestHeartbeat() {
-		StringBuilder tableQueryBuilder = new StringBuilder("INSERT INTO ").append(config.getKeyspaceName())
-	    		.append(".heartbeat(uid, id, time) VALUES ")
-	    		.append(String.format("(now(), '%s', %d)", ProvenanceConfig.getNodeId(), System.currentTimeMillis()));
-		session.execute(tableQueryBuilder.toString());
-	}
-	
-	public void defineNodeRateSchema() {
+    
+    public void defineNodeRateSchema() {
 		StringBuilder tableQueryBuilder = new StringBuilder("CREATE TABLE IF NOT EXISTS ").append(config.getKeyspaceName())
 				.append(".noderate(uid timeuuid PRIMARY KEY, id text, srate double, rrate double, time timestamp);");
 		String tableQuery = tableQueryBuilder.toString();
 		session.execute(tableQuery);
 	}
-	
-	public void ingestNodeRate(double sendRate, double receiveRate) {
-		StringBuilder tableQueryBuilder = new StringBuilder("INSERT INTO ").append(config.getKeyspaceName())
-	    		.append(".noderate(uid, id, srate, rrate, time) VALUES ")
-	    		.append(String.format("(now(), '%s', %f, %f, %d)", ProvenanceConfig.getNodeId(), sendRate, receiveRate, System.currentTimeMillis()));
-		session.execute(tableQueryBuilder.toString());
+    
+    public void registerNode() {
+		PreparedStatement preparedQuery = session.prepare("INSERT INTO ".concat(config.getKeyspaceName())
+	    		.concat(".node(id, name, successor) VALUES (?, ?, ?)"));
+	    session.execute(preparedQuery.bind(ProvenanceConfig.getNodeId(), ProvenanceConfig.getName(), ProvenanceConfig.getSuccessor()));
 	}
-	
-	public String getSinkFieldName(String fieldName) {
-		switch(fieldName) {
-			case "ID"			: return "id";
-			case "IID"			: return "inputDPs";
-			case "LOCATION" 	: return "location";
-			case "LINE" 		: return "line";
-			case "CLASS" 		: return "class";
-			case "APPLICATION" 	: return "app";
-			case "CREATE_TIME" 	: return "ctime";
-			case "SEND_TIME" 	: return "stime";
-			case "RECEIVE_TIME" : return "rtime";
-			case "LAT" 			: return "latitude";
-			case "LONG" 		: return "longitude";
-			case "METER" 		: return "meterId";
-			case "METRIC" 		: return "metricId";
-			default 			: return null;
-		}
-	}
-	
-	public String getSinkType(String fieldName) {
-		switch(fieldName) {
-			case "ID"			: return "text";
-			case "IID"			: return "map<text,text>";
-			case "LOCATION" 	: return "text";
-			case "LINE" 		: return "bigint";
-			case "CLASS" 		: return "text";
-			case "APPLICATION" 	: return "text";
-			case "CREATE_TIME" 	: return "timestamp";
-			case "SEND_TIME" 	: return "timestamp";
-			case "RECEIVE_TIME" : return "timestamp";
-			case "LAT" 			: return "double";
-			case "LONG" 		: return "double";
-			case "METER" 		: return "text";
-			case "METRIC" 		: return "text";
-			default 			: return null;
-		}
-	}
-
+    
+    @Override
 	public void ingest(Datapoint...datapoints) {
 		BatchStatement batchStatement = new BatchStatement();
 		for(int i=0; i<datapoints.length; i++) {
@@ -184,8 +138,8 @@ public class CassandraSink implements Sink{
 		}
 	    session.execute(batchStatement);
 	}
-	
-	private String getValues(Datapoint dp) {
+    
+    private String getValues(Datapoint dp) {
 		StringBuilder insertQueryValuesBuilder = new StringBuilder().append("'" + dp.getId()+ "'").append(",");
 		if(dp.getInputDatapoints() != null) {
 			Map<String, String> inputDPs = new HashMap<String,String>();
@@ -212,7 +166,70 @@ public class CassandraSink implements Sink{
 	    }
 	    return insertQueryValuesBuilder.toString();
 	}
-
+    
+    @Override
+	public void ingestHeartbeat() {
+		StringBuilder tableQueryBuilder = new StringBuilder("INSERT INTO ").append(config.getKeyspaceName())
+	    		.append(".heartbeat(uid, id, time) VALUES ")
+	    		.append(String.format("(now(), '%s', %d)", ProvenanceConfig.getNodeId(), System.currentTimeMillis()));
+		session.execute(tableQueryBuilder.toString());
+	}
+	
+	@Override
+	public void ingestNodeRate(double sendRate, double receiveRate) {
+		StringBuilder tableQueryBuilder = new StringBuilder("INSERT INTO ").append(config.getKeyspaceName())
+	    		.append(".noderate(uid, id, srate, rrate, time) VALUES ")
+	    		.append(String.format("(now(), '%s', %f, %f, %d)", ProvenanceConfig.getNodeId(), sendRate, receiveRate, System.currentTimeMillis()));
+		session.execute(tableQueryBuilder.toString());
+	}
+    
+	@Override
+	public String getSinkFieldName(String fieldName) {
+		switch(fieldName) {
+			case "ID"			: return "id";
+			case "IID"			: return "inputDPs";
+			case "LOCATION" 	: return "location";
+			case "LINE" 		: return "line";
+			case "CLASS" 		: return "class";
+			case "APPLICATION" 	: return "app";
+			case "CREATE_TIME" 	: return "ctime";
+			case "SEND_TIME" 	: return "stime";
+			case "RECEIVE_TIME" : return "rtime";
+			case "LAT" 			: return "latitude";
+			case "LONG" 		: return "longitude";
+			case "METER" 		: return "meterId";
+			case "METRIC" 		: return "metricId";
+			default 			: return null;
+		}
+	}
+	
+	@Override
+	public String getSinkType(String fieldName) {
+		switch(fieldName) {
+			case "ID"			: return "text";
+			case "IID"			: return "map<text,text>";
+			case "LOCATION" 	: return "text";
+			case "LINE" 		: return "bigint";
+			case "CLASS" 		: return "text";
+			case "APPLICATION" 	: return "text";
+			case "CREATE_TIME" 	: return "timestamp";
+			case "SEND_TIME" 	: return "timestamp";
+			case "RECEIVE_TIME" : return "timestamp";
+			case "LAT" 			: return "double";
+			case "LONG" 		: return "double";
+			case "METER" 		: return "text";
+			case "METRIC" 		: return "text";
+			default 			: return null;
+		}
+	}
+    
+    public void query(String query) {
+		ResultSet rs = session.execute(query);
+		for(Row r : rs) {
+			System.out.println(r.toString());
+		}
+	}
+	
 	@Override
 	public void close() {
 		if(cluster != null && !cluster.isClosed() && session != null && !session.isClosed()) {
