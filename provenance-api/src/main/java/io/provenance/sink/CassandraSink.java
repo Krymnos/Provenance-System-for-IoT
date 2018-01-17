@@ -2,12 +2,15 @@ package io.provenance.sink;
 
 import java.util.HashMap;
 import java.util.Map;
+
+import com.datastax.driver.core.BatchStatement;
 import com.datastax.driver.core.Cluster;
 import com.datastax.driver.core.Cluster.Builder;
 import com.datastax.driver.core.PreparedStatement;
 import com.datastax.driver.core.ResultSet;
 import com.datastax.driver.core.Row;
 import com.datastax.driver.core.Session;
+import com.datastax.driver.core.SimpleStatement;
 import com.google.gson.Gson;
 import io.provenance.config.CassandraConfig;
 import io.provenance.config.ProvenanceConfig;
@@ -151,6 +154,7 @@ public class CassandraSink implements Sink{
 	}
 
 	public void ingest(Datapoint...datapoints) {
+		BatchStatement batchStatement = new BatchStatement();
 		for(int i=0; i<datapoints.length; i++) {
 			StringBuilder insertQueryBuilder = new StringBuilder("INSERT INTO ")
 					.append(config.getKeyspaceName()).append(".").append(config.getTableName()).append("(").append(getSinkFieldName("ID"))
@@ -176,8 +180,9 @@ public class CassandraSink implements Sink{
 		    		.append(",").append(datapoints[i].getContext().getLoc().getLongitude());
 		    insertQueryBuilder = insertQueryBuilder.append(");");
 		    String query = insertQueryBuilder.toString();
-		    session.execute(query);
+		    batchStatement.add(new SimpleStatement(query));
 		}
+	    session.execute(batchStatement);
 	}
 	
 	private String getValues(Datapoint dp) {
