@@ -52,9 +52,7 @@ public class CassandraSink implements Sink{
 			      .append("'class':'").append(config.getReplicationStrategy())
 			      .append("','replication_factor':").append(config.getReplicationFactor())
 			      .append("};");
-			         
-	    String keyspaceQuery = keyspaceQueryBuilder.toString();
-	    session.execute(keyspaceQuery);
+	    session.execute(keyspaceQueryBuilder.toString());
 	}
     
     public void defineDatapointSchema() {
@@ -74,30 +72,26 @@ public class CassandraSink implements Sink{
 	    if(locationExist)
 	    	tableQueryBuilder = tableQueryBuilder.append(",").append(getSinkFieldName("LAT")).append(" ").append(getSinkType("LAT"))
 	    			.append(",").append(getSinkFieldName("LONG")).append(" ").append(getSinkType("LONG"));
-	    tableQueryBuilder = tableQueryBuilder.append(");");
-	    String tableQuery = tableQueryBuilder.toString();
-	    session.execute(tableQuery);
+	    tableQueryBuilder = tableQueryBuilder.append(",time timeuuid").append(");");
+	    session.execute(tableQueryBuilder.toString());
 	}
     
     public void defineNodeSchema() {
 		StringBuilder tableQueryBuilder = new StringBuilder("CREATE TABLE IF NOT EXISTS ").append(config.getKeyspaceName())
 				.append(".node(id text PRIMARY KEY, name text, successor text);");
-		String tableQuery = tableQueryBuilder.toString();
-		session.execute(tableQuery);
+		session.execute(tableQueryBuilder.toString());
 	}
     
     public void defineHeartbeatSchema() {
 		StringBuilder tableQueryBuilder = new StringBuilder("CREATE TABLE IF NOT EXISTS ").append(config.getKeyspaceName())
-				.append(".heartbeat(uid timeuuid PRIMARY KEY, id text, time timestamp);");
-		String tableQuery = tableQueryBuilder.toString();
-		session.execute(tableQuery);
+				.append(".heartbeat(uid timeuuid PRIMARY KEY, id text);");
+		session.execute(tableQueryBuilder.toString());
 	}
     
     public void defineNodeRateSchema() {
 		StringBuilder tableQueryBuilder = new StringBuilder("CREATE TABLE IF NOT EXISTS ").append(config.getKeyspaceName())
-				.append(".noderate(uid timeuuid PRIMARY KEY, id text, srate double, rrate double, time timestamp);");
-		String tableQuery = tableQueryBuilder.toString();
-		session.execute(tableQuery);
+				.append(".noderate(uid timeuuid PRIMARY KEY, id text, srate double, rrate double);");
+		session.execute(tableQueryBuilder.toString());
 	}
     
     public void registerNode() {
@@ -127,14 +121,12 @@ public class CassandraSink implements Sink{
 			if(locationExist && datapoints[i].getContext().getLoc() != null && datapoints[i].getContext().getLoc().isCoordinatesSet())
 				insertQueryBuilder = insertQueryBuilder.append(",").append(getSinkFieldName("LAT"))
     				.append(",").append(getSinkFieldName("LONG"));
-			insertQueryBuilder = insertQueryBuilder.append(")");
-		    insertQueryBuilder = insertQueryBuilder.append("VALUES (").append(getValues(datapoints[i]));
+			insertQueryBuilder = insertQueryBuilder.append(", time)").append("VALUES (").append(getValues(datapoints[i]));
 		    if(locationExist && datapoints[i].getContext().getLoc() != null && datapoints[i].getContext().getLoc().isCoordinatesSet())
 				insertQueryBuilder = insertQueryBuilder.append(",").append(datapoints[i].getContext().getLoc().getLatitude())
 		    		.append(",").append(datapoints[i].getContext().getLoc().getLongitude());
-		    insertQueryBuilder = insertQueryBuilder.append(");");
-		    String query = insertQueryBuilder.toString();
-		    batchStatement.add(new SimpleStatement(query));
+		    insertQueryBuilder = insertQueryBuilder.append(", now());");
+		    batchStatement.add(new SimpleStatement(insertQueryBuilder.toString()));
 		}
 	    session.execute(batchStatement);
 	}
@@ -170,16 +162,16 @@ public class CassandraSink implements Sink{
     @Override
 	public void ingestHeartbeat() {
 		StringBuilder tableQueryBuilder = new StringBuilder("INSERT INTO ").append(config.getKeyspaceName())
-	    		.append(".heartbeat(uid, id, time) VALUES ")
-	    		.append(String.format("(now(), '%s', %d)", ProvenanceConfig.getNodeId(), System.currentTimeMillis()));
+	    		.append(".heartbeat(uid, id) VALUES ")
+	    		.append(String.format("(now(), '%s')", ProvenanceConfig.getNodeId()));
 		session.execute(tableQueryBuilder.toString());
 	}
 	
 	@Override
 	public void ingestNodeRate(double sendRate, double receiveRate) {
 		StringBuilder tableQueryBuilder = new StringBuilder("INSERT INTO ").append(config.getKeyspaceName())
-	    		.append(".noderate(uid, id, srate, rrate, time) VALUES ")
-	    		.append(String.format("(now(), '%s', %f, %f, %d)", ProvenanceConfig.getNodeId(), sendRate, receiveRate, System.currentTimeMillis()));
+	    		.append(".noderate(uid, id, srate, rrate) VALUES ")
+	    		.append(String.format("(now(), '%s', %f, %f)", ProvenanceConfig.getNodeId(), sendRate, receiveRate));
 		session.execute(tableQueryBuilder.toString());
 	}
     
