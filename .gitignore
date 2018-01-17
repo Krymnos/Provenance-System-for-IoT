@@ -1,8 +1,8 @@
-*target/
-*.idea/
-*.settings/
-*.project
-*.classpath
+/*/target/
+/*/.idea/
+/*/.settings/
+/*/.project
+/*/.classpath
 *.jar
 *.iml
 *.cache
