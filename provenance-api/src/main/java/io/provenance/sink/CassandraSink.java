@@ -29,6 +29,7 @@ public class CassandraSink implements Sink{
 		registerNode();
 	}
 	
+    @Override
 	public void connect() {
 		Builder b = Cluster.builder().addContactPoint(config.getIP());
         b.withPort(config.getPort());
@@ -87,21 +88,21 @@ public class CassandraSink implements Sink{
 		StringBuilder tableQueryBuilder = new StringBuilder("CREATE TABLE IF NOT EXISTS ").append(config.getKeyspaceName())
 				.append(".heartbeat(uid timeuuid PRIMARY KEY, id text, time timestamp);");
 		String tableQuery = tableQueryBuilder.toString();
-	    session.execute(tableQuery);
+		session.execute(tableQuery);
 	}
 
 	public void ingestHeartbeat() {
 		StringBuilder tableQueryBuilder = new StringBuilder("INSERT INTO ").append(config.getKeyspaceName())
 	    		.append(".heartbeat(uid, id, time) VALUES ")
 	    		.append(String.format("(now(), '%s', %d)", ProvenanceConfig.getNodeId(), System.currentTimeMillis()));
-	    session.execute(tableQueryBuilder.toString());
+		session.execute(tableQueryBuilder.toString());
 	}
 	
 	public void defineNodeRateSchema() {
 		StringBuilder tableQueryBuilder = new StringBuilder("CREATE TABLE IF NOT EXISTS ").append(config.getKeyspaceName())
 				.append(".noderate(uid timeuuid PRIMARY KEY, id text, srate double, rrate double, time timestamp);");
 		String tableQuery = tableQueryBuilder.toString();
-	    session.execute(tableQuery);
+		session.execute(tableQuery);
 	}
 	
 	public void ingestNodeRate(double sendRate, double receiveRate) {
@@ -206,9 +207,12 @@ public class CassandraSink implements Sink{
 	    }
 	    return insertQueryValuesBuilder.toString();
 	}
-	
+
+	@Override
 	public void close() {
-		session.close();
-		cluster.close();
+		if(cluster != null && !cluster.isClosed() && session != null && !session.isClosed()) {
+			session.close();
+			cluster.close();
+		}
 	}
 }

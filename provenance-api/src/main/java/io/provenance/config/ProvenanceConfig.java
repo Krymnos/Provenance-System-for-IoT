@@ -12,6 +12,7 @@ import io.provenance.ingestor.DatapointIngestor;
 import io.provenance.ingestor.MetadataIngestor;
 import io.provenance.sink.CassandraSink;
 import io.provenance.sink.Sink;
+import io.provenance.types.ExitMonitor;
 import io.provenance.types.Metric;
 
 public class ProvenanceConfig {
@@ -25,6 +26,7 @@ public class ProvenanceConfig {
 	private static DatapointBuffer datapointBuffer;
 	private static MetadataIngestor metaDataIngestor;
 	private static MetadataBuffer metaDataBuffer;
+	private static ExitMonitor exitMonitor;
 	
 	public static void configure() throws ConfigParseException {
 		Properties prop = new Properties();
@@ -70,6 +72,7 @@ public class ProvenanceConfig {
 			metaDataIngestor = new MetadataIngestor(metaDataBuffer);
 			datapointIngestor.start();
 			metaDataIngestor.start();
+			exitMonitor = new ExitMonitor();
 		} catch (NullPointerException npe) {
 			throw new ConfigParseException("Config file not found. (Make sure 'provenance_properties' points to the config file location.)");
 		} catch (FileNotFoundException fnfe) {
@@ -113,5 +116,9 @@ public class ProvenanceConfig {
 
 	public static MetadataIngestor getMetaDataIngestor() {
 		return metaDataIngestor;
+	}
+	
+	public static ExitMonitor getExitMonitor() {
+		return exitMonitor;
 	}
 }

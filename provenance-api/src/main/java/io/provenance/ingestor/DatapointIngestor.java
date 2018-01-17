@@ -1,6 +1,7 @@
 package io.provenance.ingestor;
 
 import io.provenance.buffer.DatapointBuffer;
+import io.provenance.config.ProvenanceConfig;
 
 public class DatapointIngestor extends Thread {
 
@@ -12,12 +13,7 @@ public class DatapointIngestor extends Thread {
 	
 	@Override
 	public void run() {
-		while(!isInterrupted()) {
-			try {
-				buffer.consume();
-			} catch (InterruptedException e) {
-				System.out.println("[ERROR] : ".concat(e.getMessage()));
-			}
-		}
+		buffer.consume(this);
+		ProvenanceConfig.getExitMonitor().markExit();		
     }
 }

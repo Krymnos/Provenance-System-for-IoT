@@ -72,5 +72,4 @@ public class CassandraConfig {
 	public void setTableName(String tableName) {
 		this.tableName = tableName;
 	}
-
 }

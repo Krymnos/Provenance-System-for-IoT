@@ -1,6 +1,7 @@
 package io.provenance.ingestor;
 
 import io.provenance.buffer.MetadataBuffer;
+import io.provenance.config.ProvenanceConfig;
 
 public class MetadataIngestor extends Thread {
 
@@ -12,12 +13,7 @@ public class MetadataIngestor extends Thread {
 	
 	@Override
 	public void run() {
-		while(!isInterrupted()) {
-			try {
-				metadataBuffer.consume();
-			} catch (InterruptedException e) {
-				System.out.println("[ERROR] : ".concat(e.getMessage()));
-			}
-		}
+		metadataBuffer.consume(this);
+		ProvenanceConfig.getExitMonitor().markExit();
     }
 }

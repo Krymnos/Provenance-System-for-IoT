@@ -132,10 +132,8 @@ public class ProvenanceContext {
 	 * Stops all running threads and closes open sessions.
 	 */
 	
-	@SuppressWarnings("deprecation")
 	public void close() {
-		ProvenanceConfig.getDatapointIngestor().stop();
-		ProvenanceConfig.getMetaDataIngestor().stop();
-		ProvenanceConfig.getSink().close();
+		ProvenanceConfig.getDatapointIngestor().interrupt();
+		ProvenanceConfig.getMetaDataIngestor().interrupt();
 	}
 }

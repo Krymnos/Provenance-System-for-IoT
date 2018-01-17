@@ -10,19 +10,24 @@ public class MetadataBuffer {
 	private final long heartbeatInterval = 300000;
 	private boolean flag;
 	
-	public void consume() throws InterruptedException {
-		while(true) {
+	public void consume(Thread caller) {
+		boolean running = true;
+		while(!caller.isInterrupted() && running) {
 			synchronized (this) {
 				long currentTime = System.currentTimeMillis();
-				if((currentTime-commitTime) < heartbeatInterval)
-					wait(heartbeatInterval - (currentTime-commitTime));
+				try {
+					if((currentTime-commitTime) < heartbeatInterval)
+						wait(heartbeatInterval - (currentTime-commitTime));
+				} catch (InterruptedException e) {
+					running = false;
+				}
 				if(flag == true) {
 					ProvenanceConfig.getSink().ingestNodeRate(sendRate, receiveRate);
 					flag = false;
 				} else
 					ProvenanceConfig.getSink().ingestHeartbeat();
 				commitTime = System.currentTimeMillis();
-	        }
+			}
 		}
 	}
 	

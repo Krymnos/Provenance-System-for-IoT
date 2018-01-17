@@ -18,13 +18,20 @@ public class DatapointBuffer {
 		this.capacity = capacity;
 	}
 	
-	public void consume() throws InterruptedException {
-		while(true) {
+	public void consume(Thread caller) {
+		boolean running = true;
+		while(!caller.isInterrupted() && running) {
 			synchronized (this) {
-				if(buffer.size()<capacity)
-                    wait();
-				ProvenanceConfig.getSink().ingest(Iterables.toArray(buffer, Datapoint.class));
-				buffer.clear();
+				try {
+					if(buffer.size()<capacity)
+						wait();
+				} catch (InterruptedException e) {
+						running = false;
+				}
+				if(buffer.size() > 0) {
+					ProvenanceConfig.getSink().ingest(Iterables.toArray(buffer, Datapoint.class));
+					buffer.clear();
+				}
 	        }
 		}
 	}
