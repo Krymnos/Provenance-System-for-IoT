@@ -5,10 +5,14 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Properties;
-
+import io.provenance.buffer.DatapointBuffer;
+import io.provenance.buffer.MetadataBuffer;
 import io.provenance.exception.ConfigParseException;
+import io.provenance.ingestor.DatapointIngestor;
+import io.provenance.ingestor.MetadataIngestor;
 import io.provenance.sink.CassandraSink;
 import io.provenance.sink.Sink;
+import io.provenance.types.ExitMonitor;
 import io.provenance.types.Metric;
 
 public class ProvenanceConfig {
@@ -18,6 +22,11 @@ public class ProvenanceConfig {
 	private static String successor;
 	private static Sink sink;
 	private static String[] metrics;
+	private static DatapointIngestor datapointIngestor;
+	private static DatapointBuffer datapointBuffer;
+	private static MetadataIngestor metaDataIngestor;
+	private static MetadataBuffer metaDataBuffer;
+	private static ExitMonitor exitMonitor;
 	
 	public static void configure() throws ConfigParseException {
 		Properties prop = new Properties();
@@ -57,6 +66,13 @@ public class ProvenanceConfig {
 					throw new ConfigParseException("No Sink found.");
 			} else 
 				throw new ConfigParseException("Problem parsing config file. ('id' ,'successor' , 'sink' and 'metrics' are the required config parameters.)");
+			datapointBuffer = new DatapointBuffer(prop.containsKey("buffer.capacity") ? Integer.parseInt(prop.getProperty("buffer.capacity")) : 1);
+			datapointIngestor = new DatapointIngestor(datapointBuffer);
+			metaDataBuffer = new MetadataBuffer();
+			metaDataIngestor = new MetadataIngestor(metaDataBuffer);
+			datapointIngestor.start();
+			metaDataIngestor.start();
+			exitMonitor = new ExitMonitor();
 		} catch (NullPointerException npe) {
 			throw new ConfigParseException("Config file not found. (Make sure 'provenance_properties' points to the config file location.)");
 		} catch (FileNotFoundException fnfe) {
@@ -65,7 +81,7 @@ public class ProvenanceConfig {
 			throw new ConfigParseException("Problem loading config file. (Make sure 'provenance_properties' points to the config file location and config has proper read permissions.)");
 		}
 	}
-	
+
 	public static String getNodeId() {
 		return nodeId;
 	}
@@ -73,7 +89,7 @@ public class ProvenanceConfig {
 	public static Sink getSink() {
 		return sink;
 	}
-	
+
 	public static String getName() {
 		return name;
 	}
@@ -84,5 +100,25 @@ public class ProvenanceConfig {
 
 	public static String[] getMetrics() {
 		return metrics;
+	}
+
+	public static DatapointBuffer getDatapointBuffer() {
+		return datapointBuffer;
+	}
+	
+	public static MetadataBuffer getMetaDataBuffer() {
+		return metaDataBuffer;
+	}
+	
+	public static DatapointIngestor getDatapointIngestor() {
+		return datapointIngestor;
+	}
+
+	public static MetadataIngestor getMetaDataIngestor() {
+		return metaDataIngestor;
+	}
+	
+	public static ExitMonitor getExitMonitor() {
+		return exitMonitor;
 	}
 }
