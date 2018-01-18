@@ -19,6 +19,7 @@ public class ProvenanceContext {
 	 * There can be only one ProvenanceContext object per node. 
 	 *
 	 * @return      ProvenanceContext object.
+	 * @throws		ConfigParseException
 	 */
 	
 	public static ProvenanceContext getOrCreate() throws ConfigParseException {
@@ -36,11 +37,46 @@ public class ProvenanceContext {
 	 *
 	 * @param  Datapoint...  Datapoints to be pushed.
 	 * @return      An array of the IDs of the Datapoint that are successfully pushed to storage.
+	 * @throws		InterruptedException
 	 * @see         Datapoint
 	 */
 	
-	public String[] save(Datapoint... dps) {
-		return ProvenanceConfig.getSink().ingest(dps);
+	public String[] save(Datapoint... dps) throws InterruptedException {
+		return ProvenanceConfig.getDatapointBuffer().produce(dps);
+	}
+	
+	/**
+	 * Method to save send rate.
+	 *
+	 * @param  double  Current data send rate of the node.
+	 * @throws		InterruptedException
+	 */
+	
+	public void sendRate(double sendRate) throws InterruptedException{
+		ProvenanceConfig.getMetaDataBuffer().produceSentRate(sendRate);
+	}
+
+	/**
+	 * Method to save data receive rate.
+	 *
+	 * @param  double  Current data receive rate of the node.
+	 * @throws		InterruptedException
+	 */
+	
+	public void receiveRate(double receiveRate) throws InterruptedException {
+		ProvenanceConfig.getMetaDataBuffer().produceReceiveRate(receiveRate);
+	}
+	
+	/**
+	 * Method to save data send and receive rates.
+	 *
+	 * @param  double  Current data send rate of the node.
+	 * @param  double  Current data receive rate of the node.
+	 * @throws		InterruptedException
+	 */
+	
+	public void rate(double sendRate, double receiveRate) throws InterruptedException {
+		ProvenanceConfig.getMetaDataBuffer().produceRates(sendRate, receiveRate);
 	}
 	
 	/**
@@ -92,7 +128,12 @@ public class ProvenanceContext {
 		return inputDatapoints;
 	}
 	
+	/**
+	 * Stops all running threads and closes open sessions.
+	 */
+	
 	public void close() {
-		ProvenanceConfig.getSink().close();
+		ProvenanceConfig.getDatapointIngestor().interrupt();
+		ProvenanceConfig.getMetaDataIngestor().interrupt();
 	}
 }
