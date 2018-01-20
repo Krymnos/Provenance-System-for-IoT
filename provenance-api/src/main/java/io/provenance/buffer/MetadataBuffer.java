@@ -10,9 +10,9 @@ public class MetadataBuffer {
 	private final long heartbeatInterval = 300000;
 	private boolean flag;
 	
-	public void consume(Thread caller) {
+	public void consume() {
 		boolean running = true;
-		while(!caller.isInterrupted() && running) {
+		while(!Thread.currentThread().isInterrupted() && running) {
 			synchronized (this) {
 				long currentTime = System.currentTimeMillis();
 				try {
