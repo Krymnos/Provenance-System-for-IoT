@@ -84,13 +84,13 @@ public class CassandraSink implements Sink{
     
     public void defineHeartbeatSchema() {
 		StringBuilder tableQueryBuilder = new StringBuilder("CREATE TABLE IF NOT EXISTS ").append(config.getKeyspaceName())
-				.append(".heartbeat(uid timeuuid PRIMARY KEY, id text);");
+				.append(".heartbeat(id text PRIMARY KEY, time timestamp);");
 		session.execute(tableQueryBuilder.toString());
 	}
     
     public void defineNodeRateSchema() {
 		StringBuilder tableQueryBuilder = new StringBuilder("CREATE TABLE IF NOT EXISTS ").append(config.getKeyspaceName())
-				.append(".noderate(uid timeuuid PRIMARY KEY, id text, srate double, rrate double);");
+				.append(".noderate(id text PRIMARY KEY, time timestamp, srate double, rrate double);");
 		session.execute(tableQueryBuilder.toString());
 	}
     
@@ -162,16 +162,16 @@ public class CassandraSink implements Sink{
     @Override
 	public void ingestHeartbeat() {
 		StringBuilder tableQueryBuilder = new StringBuilder("INSERT INTO ").append(config.getKeyspaceName())
-	    		.append(".heartbeat(uid, id) VALUES ")
-	    		.append(String.format("(now(), '%s')", ProvenanceConfig.getNodeId()));
+	    		.append(".heartbeat(id, time) VALUES ")
+	    		.append(String.format("('%s', %d)", ProvenanceConfig.getNodeId(), System.currentTimeMillis()));
 		session.execute(tableQueryBuilder.toString());
 	}
 	
 	@Override
 	public void ingestNodeRate(double sendRate, double receiveRate) {
 		StringBuilder tableQueryBuilder = new StringBuilder("INSERT INTO ").append(config.getKeyspaceName())
-	    		.append(".noderate(uid, id, srate, rrate) VALUES ")
-	    		.append(String.format("(now(), '%s', %f, %f)", ProvenanceConfig.getNodeId(), sendRate, receiveRate));
+	    		.append(".noderate(id, time, srate, rrate) VALUES ")
+	    		.append(String.format("('%s', '%d', %f, %f)", ProvenanceConfig.getNodeId(), System.currentTimeMillis(), sendRate, receiveRate));
 		session.execute(tableQueryBuilder.toString());
 	}
     
