@@ -73,7 +73,6 @@ public class CassandraSink implements Sink{
 	    	tableQueryBuilder = tableQueryBuilder.append(",").append(getSinkFieldName("LAT")).append(" ").append(getSinkType("LAT"))
 	    			.append(",").append(getSinkFieldName("LONG")).append(" ").append(getSinkType("LONG"));
 	    tableQueryBuilder = tableQueryBuilder.append(",time timeuuid, nodeid text, ").append("PRIMARY KEY(ID, nodeid, ctime)) WITH CLUSTERING ORDER BY (nodeid DESC, ctime ASC)");
-	    System.out.println(tableQueryBuilder.toString());
 	    session.execute(tableQueryBuilder.toString());
 	}
     
