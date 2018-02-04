@@ -5,12 +5,14 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 import io.provenance.buffer.DatapointBuffer;
 import io.provenance.buffer.MetadataBuffer;
 import io.provenance.exception.ConfigParseException;
+import io.provenance.exception.SetupException;
 import io.provenance.ingestor.DatapointIngestor;
 import io.provenance.ingestor.MetadataIngestor;
 import io.provenance.sink.CassandraSink;
@@ -32,7 +34,7 @@ public class ProvenanceConfig {
 	private static ExitMonitor exitMonitor;
 	private static Map<String, InetAddress> neighbours;
 	
-	public static void configure() throws ConfigParseException {
+	public static void configure() throws ConfigParseException, SetupException {
 		Properties prop = new Properties();
 		InputStream input = null;
 		try {
@@ -82,6 +84,10 @@ public class ProvenanceConfig {
 			datapointIngestor.start();
 			metaDataIngestor.start();
 			exitMonitor = new ExitMonitor();
+		} catch (UnknownHostException ukhe) {
+			throw new SetupException("Failed to connect to neighbours.");
+		} catch (SecurityException se) {
+			throw new SetupException("Failed to connect to neighbours.");
 		} catch (NullPointerException npe) {
 			throw new ConfigParseException("Config file not found. (Make sure 'provenance_properties' points to the config file location.)");
 		} catch (FileNotFoundException fnfe) {

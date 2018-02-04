@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import io.provenance.config.ProvenanceConfig;
+import io.provenance.task.NeighbourStatus;
 
 public class MetadataBuffer {
 
@@ -13,7 +14,6 @@ public class MetadataBuffer {
 	private final long heartbeatInterval = 30000;
 	private boolean flag;
 	private long pipelineDaemonTime;
-	private Map<String, Long> neighboursStatus = new HashMap<String, Long>();
 	
 	public void consume() {
 		boolean running = true;
@@ -32,15 +32,7 @@ public class MetadataBuffer {
 				}
 				long time = System.currentTimeMillis();
 				if((time - commitTime) > heartbeatInterval) {
-					for(String neighbourID : ProvenanceConfig.getNeighbours().keySet()) {
-						long nodePingTime = 0;
-						try {
-							if(ProvenanceConfig.getNeighbours().get(neighbourID).isReachable(30000))
-								nodePingTime = System.currentTimeMillis();
-						} catch (IOException ioe) {}
-						neighboursStatus.put(neighbourID, nodePingTime);
-					}
-					ProvenanceConfig.getSink().ingestHeartbeat(pipelineDaemonTime, neighboursStatus);
+					ProvenanceConfig.getSink().ingestHeartbeat(pipelineDaemonTime, NeighbourStatus.getNeighboursStatus());
 					commitTime = System.currentTimeMillis();
 				}
 			}
