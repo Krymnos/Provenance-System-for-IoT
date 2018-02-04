@@ -21,8 +21,14 @@ public class NeighbourStatus {
 			} catch (InterruptedException e) {}
 		}
 		Map<String, Long> neighbourStatus = new HashMap<String, Long>();
-		for(int i=0; i<threads.length; i++)
-			neighbourStatus.put(neighbourIDs[i], ((PingNeighbour)threads[i]).getTime());
+		for(int i=0; i<threads.length; i++) {
+			String chanel;
+			if(neighbourIDs[i].equals(ProvenanceConfig.getSuccessor()))
+				chanel = ProvenanceConfig.getNodeId().concat(neighbourIDs[i]);
+			else
+				chanel = neighbourIDs[i].concat(ProvenanceConfig.getNodeId());
+			neighbourStatus.put(chanel, ((PingNeighbour)threads[i]).getTime());
+		}
 		return neighbourStatus;
 	}
 }
