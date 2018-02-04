@@ -24,9 +24,9 @@ public class NeighbourStatus {
 		for(int i=0; i<threads.length; i++) {
 			String chanel;
 			if(neighbourIDs[i].equals(ProvenanceConfig.getSuccessor()))
-				chanel = ProvenanceConfig.getNodeId().concat(neighbourIDs[i]);
+				chanel = ProvenanceConfig.getNodeId().concat(":").concat(neighbourIDs[i]);
 			else
-				chanel = neighbourIDs[i].concat(ProvenanceConfig.getNodeId());
+				chanel = neighbourIDs[i].concat(":").concat(ProvenanceConfig.getNodeId());
 			neighbourStatus.put(chanel, ((PingNeighbour)threads[i]).getTime());
 		}
 		return neighbourStatus;
