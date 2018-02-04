@@ -2,9 +2,7 @@ package io.provenance.buffer;
 
 import java.util.ArrayList;
 import java.util.List;
-
 import com.google.common.collect.Iterables;
-
 import io.provenance.config.ProvenanceConfig;
 import io.provenance.types.Datapoint;
 

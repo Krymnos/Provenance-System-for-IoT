@@ -1,8 +1,5 @@
 package io.provenance.buffer;
 
-import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
 import io.provenance.config.ProvenanceConfig;
 import io.provenance.task.NeighbourStatus;
 

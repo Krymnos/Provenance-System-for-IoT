@@ -3,7 +3,6 @@ package io.provenance.task;
 import java.net.InetAddress;
 import java.util.HashMap;
 import java.util.Map;
-
 import io.provenance.config.ProvenanceConfig;
 
 public class NeighbourStatus {
