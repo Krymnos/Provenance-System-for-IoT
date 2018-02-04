@@ -4,6 +4,9 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.InetAddress;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Properties;
 import io.provenance.buffer.DatapointBuffer;
 import io.provenance.buffer.MetadataBuffer;
@@ -27,6 +30,7 @@ public class ProvenanceConfig {
 	private static MetadataIngestor metaDataIngestor;
 	private static MetadataBuffer metaDataBuffer;
 	private static ExitMonitor exitMonitor;
+	private static Map<String, InetAddress> neighbours;
 	
 	public static void configure() throws ConfigParseException {
 		Properties prop = new Properties();
@@ -34,7 +38,7 @@ public class ProvenanceConfig {
 		try {
 			input = new FileInputStream(System.getenv("provenance_properties"));
 			prop.load(input);
-			if(prop.containsKey("id") && prop.containsKey("successor") && prop.containsKey("sink") && prop.containsKey("metrics")) {
+			if(prop.containsKey("id") && prop.containsKey("successor") && prop.containsKey("sink") && prop.containsKey("metrics") && prop.containsKey("neighbours")) {
 				nodeId = prop.getProperty("id");
 				successor = prop.getProperty("successor");
 				name = prop.containsKey("name") ? prop.getProperty("name") : nodeId;
@@ -64,8 +68,13 @@ public class ProvenanceConfig {
 					sink = new CassandraSink(cassandraConfig);
 				} else
 					throw new ConfigParseException("No Sink found.");
+				neighbours = new HashMap<String, InetAddress>();
+				for(String neighbour : prop.getProperty("neighbours").split(",")) {
+					String neighbourAttributes[] = neighbour.split(":");
+					neighbours.put(neighbourAttributes[0], InetAddress.getByName(neighbourAttributes[1]));
+				}
 			} else 
-				throw new ConfigParseException("Problem parsing config file. ('id' ,'successor' , 'sink' and 'metrics' are the required config parameters.)");
+				throw new ConfigParseException("Problem parsing config file. ('id', 'successor', 'sink', 'metrics' and 'neighbours' are the required config parameters.)");
 			datapointBuffer = new DatapointBuffer(prop.containsKey("buffer.capacity") ? Integer.parseInt(prop.getProperty("buffer.capacity")) : 1);
 			datapointIngestor = new DatapointIngestor(datapointBuffer);
 			metaDataBuffer = new MetadataBuffer();
@@ -120,5 +129,9 @@ public class ProvenanceConfig {
 	
 	public static ExitMonitor getExitMonitor() {
 		return exitMonitor;
+	}
+	
+	public static Map<String, InetAddress> getNeighbours() {
+		return neighbours;
 	}
 }

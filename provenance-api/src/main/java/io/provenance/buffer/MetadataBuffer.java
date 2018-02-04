@@ -1,5 +1,8 @@
 package io.provenance.buffer;
 
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 import io.provenance.config.ProvenanceConfig;
 
 public class MetadataBuffer {
@@ -7,8 +10,10 @@ public class MetadataBuffer {
 	private double sendRate;
 	private double receiveRate;
 	private long commitTime;
-	private final long heartbeatInterval = 300000;
+	private final long heartbeatInterval = 30000;
 	private boolean flag;
+	private long pipelineDaemonTime;
+	private Map<String, Long> neighboursStatus = new HashMap<String, Long>();
 	
 	public void consume() {
 		boolean running = true;
@@ -24,9 +29,20 @@ public class MetadataBuffer {
 				if(flag == true) {
 					ProvenanceConfig.getSink().ingestNodeRate(sendRate, receiveRate);
 					flag = false;
-				} else
-					ProvenanceConfig.getSink().ingestHeartbeat();
-				commitTime = System.currentTimeMillis();
+				}
+				long time = System.currentTimeMillis();
+				if((time - commitTime) > heartbeatInterval) {
+					for(String neighbourID : ProvenanceConfig.getNeighbours().keySet()) {
+						long nodePingTime = 0;
+						try {
+							if(ProvenanceConfig.getNeighbours().get(neighbourID).isReachable(30000))
+								nodePingTime = System.currentTimeMillis();
+						} catch (IOException ioe) {}
+						neighboursStatus.put(neighbourID, nodePingTime);
+					}
+					ProvenanceConfig.getSink().ingestHeartbeat(pipelineDaemonTime, neighboursStatus);
+					commitTime = System.currentTimeMillis();
+				}
 			}
 		}
 	}
@@ -34,7 +50,7 @@ public class MetadataBuffer {
 	public void produceSentRate(double sendRate) throws InterruptedException {
 		synchronized (this) {
 			this.sendRate = sendRate;
-			flag = true;
+			this.flag = true;
 			notify();
         }
 	}
@@ -42,7 +58,7 @@ public class MetadataBuffer {
 	public void produceReceiveRate(double receiveRate) throws InterruptedException {
 		synchronized (this) {
 			this.receiveRate = receiveRate;
-			flag = true;
+			this.flag = true;
 			notify();
         }
 	}
@@ -51,8 +67,14 @@ public class MetadataBuffer {
 		synchronized (this) {
 			this.sendRate = sendRate;
 			this.receiveRate = receiveRate;
-			flag = true;
+			this.flag = true;
 			notify();
         }
+	}
+	
+	public void markAlive() {
+		synchronized (this) {
+			this.pipelineDaemonTime = System.currentTimeMillis();
+		}
 	}
 }

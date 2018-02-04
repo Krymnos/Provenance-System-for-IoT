@@ -84,7 +84,7 @@ public class CassandraSink implements Sink{
     
     public void defineHeartbeatSchema() {
 		StringBuilder tableQueryBuilder = new StringBuilder("CREATE TABLE IF NOT EXISTS ").append(config.getKeyspaceName())
-				.append(".heartbeat(id text PRIMARY KEY, time timestamp)");
+				.append(".heartbeat(id text PRIMARY KEY, time timestamp, pldaemon timestamp, channels map<text,timestamp>)");
 		session.execute(tableQueryBuilder.toString());
 	}
     
@@ -160,10 +160,10 @@ public class CassandraSink implements Sink{
 	}
     
     @Override
-	public void ingestHeartbeat() {
+	public void ingestHeartbeat(long pipelineDaemonTime, Map<String, Long> neighboursStatus) {
 		StringBuilder tableQueryBuilder = new StringBuilder("INSERT INTO ").append(config.getKeyspaceName())
-	    		.append(".heartbeat(id, time) VALUES ")
-	    		.append(String.format("('%s', %d)", ProvenanceConfig.getNodeId(), System.currentTimeMillis()));
+	    		.append(".heartbeat(id, time, pldaemon, channels) VALUES ")
+	    		.append(String.format("('%s', %d, %d, %s)", ProvenanceConfig.getNodeId(), System.currentTimeMillis(), pipelineDaemonTime, new Gson().toJson(neighboursStatus).replaceAll("\"", "'")));
 		session.execute(tableQueryBuilder.toString());
 	}
 	
