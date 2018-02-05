@@ -10,7 +10,6 @@ public class Datapoint {
 	private Context context;
 	
 	public Datapoint() {
-		counter = (long) (Math.random()*1000);
 		id = generateID();
 	}
 	
