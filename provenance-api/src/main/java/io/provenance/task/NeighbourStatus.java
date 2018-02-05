@@ -22,12 +22,12 @@ public class NeighbourStatus {
 		}
 		Map<String, Long> neighbourStatus = new HashMap<String, Long>();
 		for(int i=0; i<threads.length; i++) {
-			String chanel;
+			String channel;
 			if(neighbourIDs[i].equals(ProvenanceConfig.getSuccessor()))
-				chanel = ProvenanceConfig.getNodeId().concat(":").concat(neighbourIDs[i]);
+				channel = ProvenanceConfig.getNodeId().concat(":").concat(neighbourIDs[i]);
 			else
-				chanel = neighbourIDs[i].concat(":").concat(ProvenanceConfig.getNodeId());
-			neighbourStatus.put(chanel, ((PingNeighbour)threads[i]).getTime());
+				channel = neighbourIDs[i].concat(":").concat(ProvenanceConfig.getNodeId());
+			neighbourStatus.put(channel, ((PingNeighbour)threads[i]).getTime());
 		}
 		return neighbourStatus;
 	}
