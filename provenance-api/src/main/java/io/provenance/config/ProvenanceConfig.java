@@ -38,62 +38,62 @@ public class ProvenanceConfig {
 		Properties prop = new Properties();
 		InputStream input = null;
 		try {
-			input = new FileInputStream(System.getenv("provenance_properties"));
-			prop.load(input);
-			if(prop.containsKey("id") && prop.containsKey("successor") && prop.containsKey("sink") && prop.containsKey("metrics") && prop.containsKey("neighbours")) {
-				nodeId = prop.getProperty("id");
-				successor = prop.getProperty("successor");
-				name = prop.containsKey("name") ? prop.getProperty("name") : nodeId;
-				String[] metricNames = prop.getProperty("metrics").split(",");
+			if(System.getenv("CONF_LOC").toUpperCase().equals("EVAR")) 
+				prop.putAll(System.getenv());
+			else {
+				input = new FileInputStream(System.getenv("provenance_properties"));
+				prop.load(input);
+			}
+			if(prop.containsKey("NODE_ID") && prop.containsKey("SUCCESSOR") && prop.containsKey("SINK") && prop.containsKey("NEIGHBOURS") && prop.containsKey("METRICS")) {
+				nodeId = prop.getProperty("NODE_ID");
+				successor = prop.getProperty("SUCCESSOR");
+				name = prop.containsKey("NODE_NAME") ? prop.getProperty("NODE_NAME") : nodeId;
+				String[] metricNames = prop.getProperty("METRICS").split(",");
 				metrics = new String[metricNames.length];
 				for(int i =0; i< metricNames.length; i++) {
 					Metric metricObj = Metric.fromValue(metricNames[i].trim());
 					if(metricObj == null)
-						throw new ConfigParseException("Invalid metrics specified in the config file. (Currently supported metrics 'meterid','metricid','loc','line','class','app','ctime','stime','rtime')");
+						throw new ConfigParseException("Invalid metrics specified. (Currently supported metrics 'meterid','metricid','loc','line','class','app','ctime','stime','rtime')");
 					metrics[i] = metricObj.name();
 				}
-				if(prop.getProperty("sink").toLowerCase().equals("cassandra")) {
-					int port = prop.containsKey("cassandra.port") ? Integer.parseInt(prop.getProperty("cassandra.port")) : 9042;
+				if(prop.getProperty("SINK").toLowerCase().equals("cassandra")) {
+					int port = prop.containsKey("CASSANDRA_PORT") ? Integer.parseInt(prop.getProperty("CASSANDRA_PORT")) : 9042;
 					CassandraConfig cassandraConfig;
-					if(prop.containsKey("cassandra.ip")) 
-						cassandraConfig = new CassandraConfig(prop.getProperty("cassandra.ip"), port);
+					if(prop.containsKey("CASSANDRA_HOST")) 
+						cassandraConfig = new CassandraConfig(prop.getProperty("CASSANDRA_HOST"), port);
 					else
 						cassandraConfig = new CassandraConfig("127.0.0.1", port);
-					if(prop.containsKey("cassandra.keyspace.name"))
-						cassandraConfig.setKeyspaceName(prop.getProperty("cassandra.keyspace.name"));
-					if(prop.containsKey("cassandra.table.name"))
-						cassandraConfig.setTableName(prop.getProperty("cassandra.table.name"));
-					if(prop.containsKey("cassandra.replication.strategy"))
-						cassandraConfig.setReplicationStrategy(prop.getProperty("cassandra.replication.strategy"));
-					if(prop.containsKey("cassandra.replication.factor"))
-						cassandraConfig.setReplicationFactor(Integer.parseInt(prop.getProperty("cassandra.replication.factor")));
+					if(prop.containsKey("CASSANDRA_KEYSPACE_NAME"))
+						cassandraConfig.setKeyspaceName(prop.getProperty("CASSANDRA_KEYSPACE_NAME"));
+					if(prop.containsKey("CASSANDRA_TABLE_NAME"))
+						cassandraConfig.setTableName(prop.getProperty("CASSANDRA_TABLE_NAME"));
+					if(prop.containsKey("CASSANDRA_REPLICATION_STRATEGY"))
+						cassandraConfig.setReplicationStrategy(prop.getProperty("CASSANDRA_REPLICATION_STRATEGY"));
+					if(prop.containsKey("CASSANDRA_REPLICATION_FACTOR"))
+						cassandraConfig.setReplicationFactor(Integer.parseInt(prop.getProperty("CASSANDRA_REPLICATION_FACTOR")));
 					sink = new CassandraSink(cassandraConfig);
 				} else
 					throw new ConfigParseException("No Sink found.");
 				neighbours = new HashMap<String, InetAddress>();
-				for(String neighbour : prop.getProperty("neighbours").split(",")) {
+				for(String neighbour : prop.getProperty("NEIGHBOURS").split(",")) {
 					String neighbourAttributes[] = neighbour.split(":");
-					neighbours.put(neighbourAttributes[0], InetAddress.getByName(neighbourAttributes[1]));
+					try {
+						neighbours.put(neighbourAttributes[0], InetAddress.getByName(neighbourAttributes[1]));
+					} catch (UnknownHostException | SecurityException e) {
+						throw new SetupException("Failed to connect to neighbours.");
+					}
 				}
 			} else 
-				throw new ConfigParseException("Problem parsing config file. ('id', 'successor', 'sink', 'metrics' and 'neighbours' are the required config parameters.)");
-			datapointBuffer = new DatapointBuffer(prop.containsKey("buffer.capacity") ? Integer.parseInt(prop.getProperty("buffer.capacity")) : 1);
+				throw new ConfigParseException("Problem loading configurations. ('id', 'successor', 'sink', 'metrics' and 'neighbours' are the required config parameters.)");
+			datapointBuffer = new DatapointBuffer(prop.containsKey("BUFFER_CAPACITY") ? Integer.parseInt(prop.getProperty("BUFFER_CAPACITY")) : 1);
 			datapointIngestor = new DatapointIngestor(datapointBuffer);
 			metaDataBuffer = new MetadataBuffer();
 			metaDataIngestor = new MetadataIngestor(metaDataBuffer);
 			datapointIngestor.start();
 			metaDataIngestor.start();
 			exitMonitor = new ExitMonitor();
-		} catch (UnknownHostException ukhe) {
-			throw new SetupException("Failed to connect to neighbours.");
-		} catch (SecurityException se) {
-			throw new SetupException("Failed to connect to neighbours.");
-		} catch (NullPointerException npe) {
-			throw new ConfigParseException("Config file not found. (Make sure 'provenance_properties' points to the config file location.)");
-		} catch (FileNotFoundException fnfe) {
-			throw new ConfigParseException("Config file not found. (Make sure 'provenance_properties' points to the config file location.)");
-		} catch (IOException ioe) {
-			throw new ConfigParseException("Problem loading config file. (Make sure 'provenance_properties' points to the config file location and config has proper read permissions.)");
+		}  catch (NullPointerException | SecurityException | IOException e) {
+			throw new ConfigParseException("Problem loading configurations.");
 		}
 	}
 
