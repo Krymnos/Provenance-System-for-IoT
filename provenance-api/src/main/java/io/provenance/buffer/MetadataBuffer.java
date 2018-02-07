@@ -28,7 +28,7 @@ public class MetadataBuffer {
 					flag = false;
 				}
 				long time = System.currentTimeMillis();
-				if((time - commitTime) > heartbeatInterval) {
+				if((time - commitTime) > heartbeatInterval || Thread.currentThread().isInterrupted() || running) {
 					ProvenanceConfig.getSink().ingestHeartbeat(pipelineDaemonTime, NeighbourStatus.getNeighboursStatus());
 					commitTime = System.currentTimeMillis();
 				}

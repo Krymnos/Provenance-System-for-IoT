@@ -84,7 +84,7 @@ public class ProvenanceConfig {
 					}
 				}
 			} else 
-				throw new ConfigParseException("Problem loading configurations. ('id', 'successor', 'sink', 'metrics' and 'neighbours' are the required config parameters.)");
+				throw new ConfigParseException("Problem loading configurations. ('NODE_ID', 'SUCCESSOR', 'NEIGHBOURS', 'METRICS' and 'SINK' are the required config parameters.)");
 			datapointBuffer = new DatapointBuffer(prop.containsKey("BUFFER_CAPACITY") ? Integer.parseInt(prop.getProperty("BUFFER_CAPACITY")) : 1);
 			datapointIngestor = new DatapointIngestor(datapointBuffer);
 			metaDataBuffer = new MetadataBuffer();
