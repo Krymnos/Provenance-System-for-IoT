@@ -37,7 +37,7 @@ public class ProvenanceConfig {
 		Properties prop = new Properties();
 		InputStream input = null;
 		try {
-			if(System.getenv("CONF_LOC").toUpperCase().equals("EVAR")) 
+			if(System.getenv("CONF_LOC") != null && System.getenv("CONF_LOC").toUpperCase().equals("EVAR"))
 				prop.putAll(System.getenv());
 			else {
 				input = new FileInputStream(System.getenv("provenance_properties"));
