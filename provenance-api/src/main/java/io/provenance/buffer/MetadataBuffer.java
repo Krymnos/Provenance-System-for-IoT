@@ -1,18 +1,20 @@
 package io.provenance.buffer;
 
 import io.provenance.config.ProvenanceConfig;
+import io.provenance.task.NeighbourStatus;
 
 public class MetadataBuffer {
 
 	private double sendRate;
 	private double receiveRate;
 	private long commitTime;
-	private final long heartbeatInterval = 300000;
+	private final long heartbeatInterval = 30000;
 	private boolean flag;
+	private long pipelineDaemonTime;
 	
-	public void consume(Thread caller) {
+	public void consume() {
 		boolean running = true;
-		while(!caller.isInterrupted() && running) {
+		while(!Thread.currentThread().isInterrupted() && running) {
 			synchronized (this) {
 				long currentTime = System.currentTimeMillis();
 				try {
@@ -24,9 +26,12 @@ public class MetadataBuffer {
 				if(flag == true) {
 					ProvenanceConfig.getSink().ingestNodeRate(sendRate, receiveRate);
 					flag = false;
-				} else
-					ProvenanceConfig.getSink().ingestHeartbeat();
-				commitTime = System.currentTimeMillis();
+				}
+				long time = System.currentTimeMillis();
+				if((time - commitTime) > heartbeatInterval) {
+					ProvenanceConfig.getSink().ingestHeartbeat(pipelineDaemonTime, NeighbourStatus.getNeighboursStatus());
+					commitTime = System.currentTimeMillis();
+				}
 			}
 		}
 	}
@@ -34,7 +39,7 @@ public class MetadataBuffer {
 	public void produceSentRate(double sendRate) throws InterruptedException {
 		synchronized (this) {
 			this.sendRate = sendRate;
-			flag = true;
+			this.flag = true;
 			notify();
         }
 	}
@@ -42,7 +47,7 @@ public class MetadataBuffer {
 	public void produceReceiveRate(double receiveRate) throws InterruptedException {
 		synchronized (this) {
 			this.receiveRate = receiveRate;
-			flag = true;
+			this.flag = true;
 			notify();
         }
 	}
@@ -51,8 +56,14 @@ public class MetadataBuffer {
 		synchronized (this) {
 			this.sendRate = sendRate;
 			this.receiveRate = receiveRate;
-			flag = true;
+			this.flag = true;
 			notify();
         }
+	}
+	
+	public void markAlive() {
+		synchronized (this) {
+			this.pipelineDaemonTime = System.currentTimeMillis();
+		}
 	}
 }

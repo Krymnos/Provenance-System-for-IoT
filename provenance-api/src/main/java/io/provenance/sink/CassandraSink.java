@@ -51,14 +51,14 @@ public class CassandraSink implements Sink{
 			      .append(config.getKeyspaceName()).append(" WITH replication = {")
 			      .append("'class':'").append(config.getReplicationStrategy())
 			      .append("','replication_factor':").append(config.getReplicationFactor())
-			      .append("};");
+			      .append("}");
 	    session.execute(keyspaceQueryBuilder.toString());
 	}
     
     public void defineDatapointSchema() {
 		StringBuilder tableQueryBuilder = new StringBuilder("CREATE TABLE IF NOT EXISTS ").append(config.getKeyspaceName()).append(".")
 	    		.append(config.getTableName()).append("(")
-	    		.append(getSinkFieldName("ID")).append(" ").append(getSinkType("ID")).append(" ").append("PRIMARY KEY").append(",")
+	    		.append(getSinkFieldName("ID")).append(" ").append(getSinkType("ID")).append(",")
 	    		.append(getSinkFieldName("IID")).append(" ").append(getSinkType("IID")).append(",");
 	    String[] metrics = ProvenanceConfig.getMetrics();
 	    boolean locationExist = false;
@@ -72,25 +72,25 @@ public class CassandraSink implements Sink{
 	    if(locationExist)
 	    	tableQueryBuilder = tableQueryBuilder.append(",").append(getSinkFieldName("LAT")).append(" ").append(getSinkType("LAT"))
 	    			.append(",").append(getSinkFieldName("LONG")).append(" ").append(getSinkType("LONG"));
-	    tableQueryBuilder = tableQueryBuilder.append(",time timeuuid").append(");");
+	    tableQueryBuilder = tableQueryBuilder.append(",time timeuuid, nodeid text, ").append("PRIMARY KEY(ID, nodeid, ctime)) WITH CLUSTERING ORDER BY (nodeid DESC, ctime ASC)");
 	    session.execute(tableQueryBuilder.toString());
 	}
     
     public void defineNodeSchema() {
 		StringBuilder tableQueryBuilder = new StringBuilder("CREATE TABLE IF NOT EXISTS ").append(config.getKeyspaceName())
-				.append(".node(id text PRIMARY KEY, name text, successor text);");
+				.append(".node(id text PRIMARY KEY, name text, successor text)");
 		session.execute(tableQueryBuilder.toString());
 	}
     
     public void defineHeartbeatSchema() {
 		StringBuilder tableQueryBuilder = new StringBuilder("CREATE TABLE IF NOT EXISTS ").append(config.getKeyspaceName())
-				.append(".heartbeat(uid timeuuid PRIMARY KEY, id text);");
+				.append(".heartbeat(id text PRIMARY KEY, time timestamp, pldaemon timestamp, channels map<text,timestamp>)");
 		session.execute(tableQueryBuilder.toString());
 	}
     
     public void defineNodeRateSchema() {
 		StringBuilder tableQueryBuilder = new StringBuilder("CREATE TABLE IF NOT EXISTS ").append(config.getKeyspaceName())
-				.append(".noderate(uid timeuuid PRIMARY KEY, id text, srate double, rrate double);");
+				.append(".noderate(id text PRIMARY KEY, time timestamp, srate double, rrate double)");
 		session.execute(tableQueryBuilder.toString());
 	}
     
@@ -121,11 +121,11 @@ public class CassandraSink implements Sink{
 			if(locationExist && datapoints[i].getContext().getLoc() != null && datapoints[i].getContext().getLoc().isCoordinatesSet())
 				insertQueryBuilder = insertQueryBuilder.append(",").append(getSinkFieldName("LAT"))
     				.append(",").append(getSinkFieldName("LONG"));
-			insertQueryBuilder = insertQueryBuilder.append(", time)").append("VALUES (").append(getValues(datapoints[i]));
+			insertQueryBuilder = insertQueryBuilder.append(", time, nodeid)").append("VALUES (").append(getValues(datapoints[i]));
 		    if(locationExist && datapoints[i].getContext().getLoc() != null && datapoints[i].getContext().getLoc().isCoordinatesSet())
 				insertQueryBuilder = insertQueryBuilder.append(",").append(datapoints[i].getContext().getLoc().getLatitude())
 		    		.append(",").append(datapoints[i].getContext().getLoc().getLongitude());
-		    insertQueryBuilder = insertQueryBuilder.append(", now());");
+		    insertQueryBuilder = insertQueryBuilder.append(", now(), '").append(ProvenanceConfig.getNodeId()).append("')");
 		    batchStatement.add(new SimpleStatement(insertQueryBuilder.toString()));
 		}
 	    session.execute(batchStatement);
@@ -160,18 +160,18 @@ public class CassandraSink implements Sink{
 	}
     
     @Override
-	public void ingestHeartbeat() {
+	public void ingestHeartbeat(long pipelineDaemonTime, Map<String, Long> neighboursStatus) {
 		StringBuilder tableQueryBuilder = new StringBuilder("INSERT INTO ").append(config.getKeyspaceName())
-	    		.append(".heartbeat(uid, id) VALUES ")
-	    		.append(String.format("(now(), '%s')", ProvenanceConfig.getNodeId()));
+	    		.append(".heartbeat(id, time, pldaemon, channels) VALUES ")
+	    		.append(String.format("('%s', %d, %d, %s)", ProvenanceConfig.getNodeId(), System.currentTimeMillis(), pipelineDaemonTime, new Gson().toJson(neighboursStatus).replaceAll("\"", "'")));
 		session.execute(tableQueryBuilder.toString());
 	}
 	
 	@Override
 	public void ingestNodeRate(double sendRate, double receiveRate) {
 		StringBuilder tableQueryBuilder = new StringBuilder("INSERT INTO ").append(config.getKeyspaceName())
-	    		.append(".noderate(uid, id, srate, rrate) VALUES ")
-	    		.append(String.format("(now(), '%s', %f, %f)", ProvenanceConfig.getNodeId(), sendRate, receiveRate));
+	    		.append(".noderate(id, time, srate, rrate) VALUES ")
+	    		.append(String.format("('%s', '%d', %f, %f)", ProvenanceConfig.getNodeId(), System.currentTimeMillis(), sendRate, receiveRate));
 		session.execute(tableQueryBuilder.toString());
 	}
     

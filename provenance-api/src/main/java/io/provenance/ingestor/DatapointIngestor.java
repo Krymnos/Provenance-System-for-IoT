@@ -5,15 +5,15 @@ import io.provenance.config.ProvenanceConfig;
 
 public class DatapointIngestor extends Thread {
 
-	DatapointBuffer buffer;
+	DatapointBuffer datapointBuffer;
 	
 	public DatapointIngestor(DatapointBuffer buffer) {
-		this.buffer = buffer;
+		this.datapointBuffer = buffer;
 	}
 	
 	@Override
 	public void run() {
-		buffer.consume(this);
+		datapointBuffer.consume();
 		ProvenanceConfig.getExitMonitor().markExit();		
     }
 }

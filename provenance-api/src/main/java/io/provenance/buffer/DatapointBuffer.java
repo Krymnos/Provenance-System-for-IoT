@@ -2,9 +2,7 @@ package io.provenance.buffer;
 
 import java.util.ArrayList;
 import java.util.List;
-
 import com.google.common.collect.Iterables;
-
 import io.provenance.config.ProvenanceConfig;
 import io.provenance.types.Datapoint;
 
@@ -18,9 +16,9 @@ public class DatapointBuffer {
 		this.capacity = capacity;
 	}
 	
-	public void consume(Thread caller) {
+	public void consume() {
 		boolean running = true;
-		while(!caller.isInterrupted() && running) {
+		while(!Thread.currentThread().isInterrupted() && running) {
 			synchronized (this) {
 				try {
 					if(buffer.size()<capacity)

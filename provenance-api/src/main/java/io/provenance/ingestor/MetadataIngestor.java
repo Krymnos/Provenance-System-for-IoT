@@ -13,7 +13,7 @@ public class MetadataIngestor extends Thread {
 	
 	@Override
 	public void run() {
-		metadataBuffer.consume(this);
+		metadataBuffer.consume();
 		ProvenanceConfig.getExitMonitor().markExit();
     }
 }

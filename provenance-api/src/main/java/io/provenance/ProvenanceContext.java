@@ -2,6 +2,7 @@ package io.provenance;
 
 import io.provenance.config.ProvenanceConfig;
 import io.provenance.exception.ConfigParseException;
+import io.provenance.exception.SetupException;
 import io.provenance.types.Context;
 import io.provenance.types.Datapoint;
 import io.provenance.types.InputDatapoint;
@@ -10,7 +11,7 @@ public class ProvenanceContext {
 	
 	private static ProvenanceContext pc;
 
-	private ProvenanceContext() throws ConfigParseException {
+	private ProvenanceContext() throws ConfigParseException, SetupException {
 		ProvenanceConfig.configure();
 	}
 
@@ -19,12 +20,14 @@ public class ProvenanceContext {
 	 * There can be only one ProvenanceContext object per node. 
 	 *
 	 * @return      ProvenanceContext object.
-	 * @throws		ConfigParseException
+	 * @throws		{@link ConfigParseException}
+	 * @throws		{@link SetupException}
 	 */
 	
-	public static ProvenanceContext getOrCreate() throws ConfigParseException {
+	public static ProvenanceContext getOrCreate() throws ConfigParseException, SetupException {
 		if(pc == null) 
 			pc = new ProvenanceContext();
+		pc.markAlive();
 		return pc;
 	}
 	
@@ -42,6 +45,7 @@ public class ProvenanceContext {
 	 */
 	
 	public String[] save(Datapoint... dps) throws InterruptedException {
+		markAlive();
 		return ProvenanceConfig.getDatapointBuffer().produce(dps);
 	}
 	
@@ -52,7 +56,8 @@ public class ProvenanceContext {
 	 * @throws		InterruptedException
 	 */
 	
-	public void sendRate(double sendRate) throws InterruptedException{
+	public void sendRate(double sendRate) throws InterruptedException {
+		markAlive();
 		ProvenanceConfig.getMetaDataBuffer().produceSentRate(sendRate);
 	}
 
@@ -64,6 +69,7 @@ public class ProvenanceContext {
 	 */
 	
 	public void receiveRate(double receiveRate) throws InterruptedException {
+		markAlive();
 		ProvenanceConfig.getMetaDataBuffer().produceReceiveRate(receiveRate);
 	}
 	
@@ -76,7 +82,17 @@ public class ProvenanceContext {
 	 */
 	
 	public void rate(double sendRate, double receiveRate) throws InterruptedException {
+		markAlive();
 		ProvenanceConfig.getMetaDataBuffer().produceRates(sendRate, receiveRate);
+	}
+	
+	/**
+	 * Method to mark pipeline daemon as alive.
+	 *
+	 */
+	
+	public void markAlive() {
+		ProvenanceConfig.getMetaDataBuffer().markAlive();
 	}
 	
 	/**
@@ -90,10 +106,11 @@ public class ProvenanceContext {
 	 * 					["METER", "METRIC", "LOCATION", "LINE", "CLASS", "APPLICATION", "CREATE_TIME", "SEND_TIME", "RECEIVE_TIME"]
 	 *
 	 * @return      An array of all required context attributes.
-	 * @see         Context
+	 * @see         {@link Context}
 	 */
 	
 	public String[] getContextParams() {
+		markAlive();
 		return ProvenanceConfig.getMetrics();
 	}
 	
@@ -102,10 +119,11 @@ public class ProvenanceContext {
 	 *
 	 * @param  inputDatapointsIDs  An array of the IDs of the Datapoint containing all the data points that will contribute to the new Datapoint.
 	 * @return      An array of the input data points containing the default contribution tag for all the input data points that will contribute to the new Datapoint.
-	 * @see         InputDatapoint
+	 * @see         {@link InputDatapoint}
 	 */
 	
 	public InputDatapoint[] getInputDatapoints(String[] inputDatapointsIDs) {
+		markAlive();
 		InputDatapoint[] inputDatapoints = new InputDatapoint[inputDatapointsIDs.length];
 		for(int i=0; i<inputDatapointsIDs.length; i++)
 			inputDatapoints[i] = new InputDatapoint(inputDatapointsIDs[i], "simple");
@@ -118,10 +136,11 @@ public class ProvenanceContext {
 	 * @param  inputDatapointsIDs  An array of the IDs of the Datapoint containing all the data points that will contribute to the new Datapoint.
 	 * @param  contrIbution        Type of contribution for the input data points to the new data point. i.e. ("Avg", "Min")
 	 * @return      An array of the input data points containing the contribution tag for all the input data points that will contribute to the new Datapoint.
-	 * @see         InputDatapoint
+	 * @see         {@link InputDatapoint}
 	 */
 	
 	public InputDatapoint[] getInputDatapoints(String[] inputDatapointsIDs, String contrIbution) {
+		markAlive();
 		InputDatapoint[] inputDatapoints = new InputDatapoint[inputDatapointsIDs.length];
 		for(int i=0; i<inputDatapointsIDs.length; i++)
 			inputDatapoints[i] = new InputDatapoint(inputDatapointsIDs[i], contrIbution);
