@@ -8,7 +8,7 @@ public class MetadataBuffer {
 	private double sendRate;
 	private double receiveRate;
 	private long commitTime;
-	private final long heartbeatInterval = 30000;
+	private final long heartbeatInterval = 2000;
 	private boolean flag;
 	private long pipelineDaemonTime;
 	
